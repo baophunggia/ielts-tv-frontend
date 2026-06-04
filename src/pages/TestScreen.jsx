@@ -57,7 +57,7 @@ const TrueFalseNotGiven = ({ group }) => (
 const MultipleChoice = ({ group }) => (
     <div className="mb-8 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
         <h3 className="font-semibold text-lg mb-2 text-indigo-700">
-            Question {group.questions.length > 1 ? `${group.questions[0].displayNumber} - ${group.questions[group.questions.length - 1].displayNumber}` : group.questions[0].displayNumber}
+            Câu hỏi {group.questions.length > 1 ? `${group.questions[0].displayNumber} - ${group.questions[group.questions.length - 1].displayNumber}` : group.questions[0].displayNumber}
         </h3>
         <p className="italic text-gray-600 mb-4">{group.instruction}</p>
         <div className="space-y-4">
@@ -81,7 +81,7 @@ const MultipleChoice = ({ group }) => (
 const GapFill = ({ group }) => (
     <div className="mb-8 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
         <h3 className="font-semibold text-lg mb-2 text-indigo-700">
-            Question {group.questions.length > 1 ? `${group.questions[0].displayNumber} - ${group.questions[group.questions.length - 1].displayNumber}` : group.questions[0].displayNumber}
+            Câu hỏi {group.questions.length > 1 ? `${group.questions[0].displayNumber} - ${group.questions[group.questions.length - 1].displayNumber}` : group.questions[0].displayNumber}
         </h3>
         <p className="italic text-gray-600 mb-4">{group.instruction}</p>
         <div className="space-y-4">
