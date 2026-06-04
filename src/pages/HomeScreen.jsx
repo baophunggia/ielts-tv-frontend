@@ -8,6 +8,7 @@ import supabase from '../supabaseClient';
 const HomeScreen = () => {
     const [tests, setTests] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     // State cho filter, search, sort
     const [searchQuery, setSearchQuery] = useState('');
@@ -16,6 +17,9 @@ const HomeScreen = () => {
 
     useEffect(() => {
         fetchTestsList();
+        // Kiểm tra xem trong bộ nhớ trình duyệt có biến isAdminLoggedIn không
+        const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+        setIsAdmin(loggedIn);
     }, []);
 
     const fetchTestsList = async () => {
@@ -57,9 +61,15 @@ const HomeScreen = () => {
                     <h1 className="text-2xl font-bold flex items-center gap-2">
                         <i className="fa-solid fa-graduation-cap"></i> IELTS TV
                     </h1>
-                    <Link to="/admin" className="text-indigo-200 hover:text-white font-medium transition">
-                        <i className="fa-solid fa-shield-halved mr-1"></i> Admin Portal
-                    </Link>
+                    {isAdmin ? (
+                        <Link to="/admin" className="bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded text-indigo-100 font-medium transition flex items-center gap-2">
+                            <i className="fa-solid fa-cloud-arrow-up"></i> Upload tài liệu
+                        </Link>
+                    ) : (
+                        <Link to="/admin" className="text-indigo-200 hover:text-white font-medium transition flex items-center gap-2">
+                            <i className="fa-solid fa-shield-halved"></i> Admin Portal
+                        </Link>
+                    )}
                 </div>
             </header>
 
