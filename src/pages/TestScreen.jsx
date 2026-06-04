@@ -1,12 +1,120 @@
-// ==========================================
-// MÀN HÌNH THI (CHI TIẾT 1 BÀI THI)
-// ==========================================
-import supabase from '../supabaseClient';
 import { useRef, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import supabase from '../supabaseClient';
 
+// ==========================================
+// COMPONENT CÁC DẠNG CÂU HỎI
+// ==========================================
+const MatchingHeadings = ({ group }) => (
+    <div className="mb-8 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
+        <h3 className="font-semibold text-lg mb-2 text-indigo-700">
+            Questions {group.questions[0].displayNumber} - {group.questions[group.questions.length - 1].displayNumber}
+        </h3>
+        <p className="italic text-gray-600 mb-4">{group.instruction}</p>
+        <div className="bg-gray-50 p-4 rounded mb-4 border border-gray-200">
+            <p className="font-semibold mb-2">List of Headings</p>
+            <ul className="space-y-1">
+                {group.options?.map((opt, idx) => (
+                    <li key={idx} className="text-sm text-gray-700">{opt}</li>
+                ))}
+            </ul>
+        </div>
+        <div className="space-y-3">
+            {group.questions.map(q => (
+                <div key={q.id} className="flex items-center space-x-3">
+                    <span className="font-medium w-16">{q.displayNumber}:</span>
+                    <input type="text" className="border border-gray-300 rounded px-3 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="..." />
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
+const TrueFalseNotGiven = ({ group }) => (
+    <div className="mb-8 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
+        <h3 className="font-semibold text-lg mb-2 text-indigo-700">
+            Questions {group.questions[0].displayNumber} - {group.questions[group.questions.length - 1].displayNumber}
+        </h3>
+        <p className="italic text-gray-600 mb-4">{group.instruction}</p>
+        <div className="space-y-4">
+            {group.questions.map((q) => (
+                <div key={q.id} className="flex flex-col space-y-2">
+                    <p className="text-gray-800"><span className="font-bold mr-2">{q.displayNumber}.</span> {q.text}</p>
+                    <div className="flex space-x-4 ml-6">
+                        {['TRUE', 'FALSE', 'NOT GIVEN'].map(opt => (
+                            <label key={opt} className="flex items-center space-x-1 cursor-pointer">
+                                <input type="radio" name={q.id} className="text-indigo-600 focus:ring-indigo-500" />
+                                <span className="text-sm text-gray-700">{opt}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
+const MultipleChoice = ({ group }) => (
+    <div className="mb-8 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
+        <h3 className="font-semibold text-lg mb-2 text-indigo-700">
+            Question {group.questions.length > 1 ? `${group.questions[0].displayNumber} - ${group.questions[group.questions.length - 1].displayNumber}` : group.questions[0].displayNumber}
+        </h3>
+        <p className="italic text-gray-600 mb-4">{group.instruction}</p>
+        <div className="space-y-4">
+            {group.questions.map(q => (
+                <div key={q.id}>
+                    <p className="font-medium text-gray-800 mb-2"><span className="font-bold mr-2">{q.displayNumber}.</span> {q.text}</p>
+                    <div className="space-y-2 ml-6">
+                        {q.options?.map((opt, idx) => (
+                            <label key={idx} className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
+                                <input type="radio" name={q.id} className="text-indigo-600 focus:ring-indigo-500" />
+                                <span className="text-gray-700">{opt}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
+const GapFill = ({ group }) => (
+    <div className="mb-8 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
+        <h3 className="font-semibold text-lg mb-2 text-indigo-700">
+            Question {group.questions.length > 1 ? `${group.questions[0].displayNumber} - ${group.questions[group.questions.length - 1].displayNumber}` : group.questions[0].displayNumber}
+        </h3>
+        <p className="italic text-gray-600 mb-4">{group.instruction}</p>
+        <div className="space-y-4">
+            {group.questions.map(q => {
+                // Hỗ trợ Admin gõ [GAP] hoặc gõ nhiều dấu ___ (từ 3 dấu trở lên)
+                const parts = q.text.split(/\[GAP\]|_{3,}/);
+
+                return (
+                    <div key={q.id} className="text-gray-800 leading-loose flex flex-wrap items-center">
+                        <span className="font-bold mr-2">{q.displayNumber}.</span>
+                        <span>{parts[0]}</span>
+
+                        {/* Nếu có đục lỗ thì hiển thị Input ở giữa, ngược lại đẩy Input ra cuối cùng */}
+                        {parts.length > 1 ? (
+                            <>
+                                <input type="text" className="border-b-2 border-gray-400 mx-2 w-32 px-1 focus:outline-none focus:border-indigo-600 bg-transparent text-center" />
+                                <span>{parts[1]}</span>
+                            </>
+                        ) : (
+                            <input type="text" className="border-b-2 border-gray-400 mx-2 w-32 px-1 focus:outline-none focus:border-indigo-600 bg-transparent text-center" />
+                        )}
+                    </div>
+                )
+            })}
+        </div>
+    </div>
+);
+
+// ==========================================
+// MÀN HÌNH THI CHÍNH
+// ==========================================
 const TestScreen = () => {
-    const { id } = useParams(); // Lấy ID từ URL
+    const { id } = useParams();
     const navigate = useNavigate();
     const contentRef = useRef(null);
 
@@ -22,10 +130,26 @@ const TestScreen = () => {
             const { data, error } = await supabase
                 .from('reading_tests')
                 .select('*')
-                .eq('id', testId) // Truy vấn đúng bài có ID được click
+                .eq('id', testId)
                 .single();
 
             if (error) throw error;
+
+            // TIỀN XỬ LÝ: Tự động đánh số thứ tự câu hỏi (1, 2, 3...) trước khi hiển thị
+            let currentQuestionNumber = 1;
+            const processedQuestions = data.questions_json.map(group => {
+                const newGroup = { ...group };
+                newGroup.questions = group.questions.map(q => {
+                    const newQ = { ...q, displayNumber: currentQuestionNumber };
+                    currentQuestionNumber++;
+                    return newQ;
+                });
+                return newGroup;
+            });
+
+            // Ghi đè lại mảng JSON đã đánh số
+            data.questions_json = processedQuestions;
+
             setTestData(data);
         } catch (error) {
             console.error('Lỗi khi tải dữ liệu bài thi:', error);
@@ -58,96 +182,6 @@ const TestScreen = () => {
         }
         selection.removeAllRanges();
     };
-
-    // ==========================================
-    // COMPONENT CÁC DẠNG CÂU HỎI
-    // ==========================================
-    const MatchingHeadings = ({ group }) => (
-        <div className="mb-8 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
-            <h3 className="font-semibold text-lg mb-2 text-indigo-700">Questions {group.questions[0].id.replace('q', '')} - {group.questions[group.questions.length - 1].id.replace('q', '')}</h3>
-            <p className="italic text-gray-600 mb-4">{group.instruction}</p>
-            <div className="bg-gray-50 p-4 rounded mb-4 border border-gray-200">
-                <p className="font-semibold mb-2">List of Headings</p>
-                <ul className="space-y-1">
-                    {group.options.map((opt, idx) => (
-                        <li key={idx} className="text-sm text-gray-700">{opt}</li>
-                    ))}
-                </ul>
-            </div>
-            <div className="space-y-3">
-                {group.questions.map(q => (
-                    <div key={q.id} className="flex items-center space-x-3">
-                        <span className="font-medium w-24">{q.text}:</span>
-                        <input type="text" className="border border-gray-300 rounded px-3 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="..." />
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-
-    const TrueFalseNotGiven = ({ group }) => (
-        <div className="mb-8 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
-            <h3 className="font-semibold text-lg mb-2 text-indigo-700">Questions {group.questions[0].id.replace('q', '')} - {group.questions[group.questions.length - 1].id.replace('q', '')}</h3>
-            <p className="italic text-gray-600 mb-4">{group.instruction}</p>
-            <div className="space-y-4">
-                {group.questions.map((q) => (
-                    <div key={q.id} className="flex flex-col space-y-2">
-                        <p className="text-gray-800"><span className="font-bold mr-2">{q.id.replace('q', '')}.</span> {q.text}</p>
-                        <div className="flex space-x-4 ml-6">
-                            {['TRUE', 'FALSE', 'NOT GIVEN'].map(opt => (
-                                <label key={opt} className="flex items-center space-x-1 cursor-pointer">
-                                    <input type="radio" name={q.id} className="text-indigo-600 focus:ring-indigo-500" />
-                                    <span className="text-sm text-gray-700">{opt}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-
-    const MultipleChoice = ({ group }) => (
-        <div className="mb-8 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
-            <h3 className="font-semibold text-lg mb-2 text-indigo-700">Question {group.questions[0].id.replace('q', '')}</h3>
-            <p className="italic text-gray-600 mb-4">{group.instruction}</p>
-            <div className="space-y-4">
-                {group.questions.map(q => (
-                    <div key={q.id}>
-                        <p className="font-medium text-gray-800 mb-2"><span className="font-bold mr-2">{q.id.replace('q', '')}.</span> {q.text}</p>
-                        <div className="space-y-2 ml-6">
-                            {q.options.map((opt, idx) => (
-                                <label key={idx} className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
-                                    <input type="radio" name={q.id} className="text-indigo-600 focus:ring-indigo-500" />
-                                    <span className="text-gray-700">{opt}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-
-    const GapFill = ({ group }) => (
-        <div className="mb-8 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
-            <h3 className="font-semibold text-lg mb-2 text-indigo-700">Question {group.questions[0].id.replace('q', '')}</h3>
-            <p className="italic text-gray-600 mb-4">{group.instruction}</p>
-            <div className="space-y-4">
-                {group.questions.map(q => {
-                    const parts = q.text.split('[GAP]');
-                    return (
-                        <div key={q.id} className="text-gray-800 leading-loose flex flex-wrap items-center">
-                            <span className="font-bold mr-2">{q.id.replace('q', '')}.</span>
-                            <span>{parts[0]}</span>
-                            <input type="text" className="border-b-2 border-gray-400 mx-2 w-32 px-1 focus:outline-none focus:border-indigo-600 bg-transparent text-center" />
-                            <span>{parts[1]}</span>
-                        </div>
-                    )
-                })}
-            </div>
-        </div>
-    );
 
     const renderQuestionGroup = (group) => {
         switch (group.type) {
@@ -205,14 +239,14 @@ const TestScreen = () => {
                         <i className="fa-solid fa-lightbulb mr-1"></i> Mẹo: Dùng chuột bôi đen đoạn văn để highlight. Click vào đoạn đã bôi đen để xóa.
                     </div>
                     <div
-                        className="h-full overflow-y-auto p-8 pt-12 reading-content selection:bg-indigo-100 selection:text-indigo-900"
+                        className="h-full overflow-y-auto overflow-x-hidden pl-8 pr-12 py-12 text-left leading-loose text-gray-800 reading-content selection:bg-indigo-100 selection:text-indigo-900"
                         ref={contentRef}
                         onMouseUp={handleMouseUp}
-                        dangerouslySetInnerHTML={{ __html: testData.passage_html }}
+                        dangerouslySetInnerHTML={{ __html: testData.passage_html.replace(/&nbsp;/g, ' ') }}
                     />
                 </div>
                 <div className="w-1/2 h-full bg-slate-50 overflow-y-auto p-8">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-6">Questions Set</h2>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6">Bộ câu hỏi</h2>
                     {testData.questions_json.map(group => renderQuestionGroup(group))}
                 </div>
             </div>

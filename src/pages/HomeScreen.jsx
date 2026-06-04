@@ -59,7 +59,7 @@ const HomeScreen = () => {
             <header className="bg-indigo-900 text-white p-6 shadow-md">
                 <div className="max-w-6xl mx-auto flex justify-between items-center">
                     <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <i className="fa-solid fa-graduation-cap"></i> IELTS TV
+                        <i className="fa-solid fa-graduation-cap"></i> IELTS-TV
                     </h1>
                     {isAdmin ? (
                         <Link to="/admin" className="bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded text-indigo-100 font-medium transition flex items-center gap-2">
