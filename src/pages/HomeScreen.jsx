@@ -2,13 +2,15 @@
 // MÀN HÌNH TRANG CHỦ (DANH SÁCH BÀI THI)
 // ==========================================
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import supabase from '../supabaseClient';
 
 const HomeScreen = () => {
     const [tests, setTests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
+    
+    const navigate = useNavigate();
 
     // State cho filter, search, sort
     const [searchQuery, setSearchQuery] = useState('');
@@ -36,6 +38,30 @@ const HomeScreen = () => {
             console.error('Lỗi khi tải danh sách bài thi:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // ==========================================
+    // LOGIC XÓA BÀI THI DÀNH CHO ADMIN
+    // ==========================================
+    const handleDeleteTest = async (testId, testTitle) => {
+        const confirmDelete = window.confirm(`Bạn có chắc chắn muốn xóa bài thi "${testTitle}" không? Hành động này không thể hoàn tác.`);
+        if (!confirmDelete) return;
+
+        try {
+            const { error } = await supabase
+                .from('reading_tests')
+                .delete()
+                .eq('id', testId);
+
+            if (error) throw error;
+
+            // Xóa thành công, cập nhật lại state danh sách ngay lập tức
+            setTests(tests.filter(test => test.id !== testId));
+            alert('Đã xóa bài thi thành công!');
+        } catch (error) {
+            console.error('Lỗi khi xóa bài thi:', error);
+            alert('Có lỗi xảy ra khi xóa bài thi. Vui lòng thử lại.');
         }
     };
 
@@ -72,14 +98,6 @@ const HomeScreen = () => {
                     )}
                 </div>
             </header>
-
-            {/* Hero Section */}
-            {/* <div className="bg-indigo-800 text-white py-16 px-6 text-center shadow-inner">
-        <h2 className="text-4xl font-extrabold mb-4">Reading Practice Library</h2>
-        <p className="text-indigo-200 text-lg max-w-2xl mx-auto">
-          Cải thiện kỹ năng đọc IELTS của bạn với kho đề thi đa dạng, giao diện chia đôi màn hình chuẩn kỳ thi thật.
-        </p>
-      </div> */}
 
             <div className="max-w-6xl mx-auto px-6 mt-8">
                 {/* Thanh Công Cụ (Search, Filter, Sort) */}
@@ -149,13 +167,32 @@ const HomeScreen = () => {
                                     </h3>
                                     <p className="text-gray-500 text-sm mb-4">Reading Passage & Questions Set.</p>
                                 </div>
-                                <div className="bg-gray-50 px-6 py-4 border-t border-gray-100">
+                                
+                                <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 space-y-2">
                                     <Link
                                         to={`/test/${test.id}`}
                                         className="block w-full text-center bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 font-semibold py-2 px-4 rounded-lg transition duration-200"
                                     >
                                         Bắt Đầu Làm Bài <i className="fa-solid fa-arrow-right ml-1"></i>
                                     </Link>
+
+                                    {/* CÁC NÚT DÀNH RIÊNG CHO ADMIN */}
+                                    {isAdmin && (
+                                        <div className="flex gap-2 pt-2 border-t border-gray-200 mt-2">
+                                            <button 
+                                                onClick={() => navigate(`/admin?edit=${test.id}`)}
+                                                className="flex-1 bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 py-1.5 rounded-lg text-sm font-medium transition flex justify-center items-center gap-1"
+                                            >
+                                                <i className="fa-solid fa-pen-to-square"></i> Sửa
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDeleteTest(test.id, test.title)}
+                                                className="flex-1 bg-white border border-red-200 text-red-600 hover:bg-red-50 py-1.5 rounded-lg text-sm font-medium transition flex justify-center items-center gap-1"
+                                            >
+                                                <i className="fa-solid fa-trash-can"></i> Xóa
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}

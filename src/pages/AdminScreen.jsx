@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
 const AdminScreen = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const editId = searchParams.get('edit'); // Lấy ID bài thi nếu ở chế độ chỉnh sửa
 
     // ==========================================
-    // 1. STATES CHUNG & AUTH
+    // 1. STATES CHUNG
     // ==========================================
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [passwordInput, setPasswordInput] = useState('');
@@ -17,8 +19,6 @@ const AdminScreen = () => {
     const [title, setTitle] = useState('');
     const [level, setLevel] = useState('Intermediate');
     const [html, setHtml] = useState('');
-    
-    // THAY THẾ JSON STRING BẰNG MẢNG QUESTION GROUPS
     const [questionGroups, setQuestionGroups] = useState([]); 
     
     const [status, setStatus] = useState({ type: '', msg: '' });
@@ -33,10 +33,36 @@ const AdminScreen = () => {
         ],
     };
 
+    // Kiểm tra login & Tải dữ liệu cũ nếu ở chế độ EDIT
     useEffect(() => {
         const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
         setIsAuthenticated(loggedIn);
-    }, []);
+
+        if (loggedIn && editId) {
+            fetchOldTestData(editId);
+        }
+    }, [editId]);
+
+    // Hàm lấy dữ liệu bài thi cũ để chỉnh sửa
+    const fetchOldTestData = async (id) => {
+        try {
+            const { data, error } = await supabase
+                .from('reading_tests')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error) throw error;
+            
+            // Đổ dữ liệu cũ vào các ô Form
+            setTitle(data.title);
+            setLevel(data.level || 'Intermediate');
+            setHtml(data.passage_html);
+            setQuestionGroups(data.questions_json || []);
+        } catch (error) {
+            setStatus({ type: 'error', msg: 'Không thể tải dữ liệu bài thi cũ: ' + error.message });
+        }
+    };
 
     const handleLoginSubmit = (e) => {
         e.preventDefault();
@@ -44,6 +70,7 @@ const AdminScreen = () => {
             setIsAuthenticated(true);
             localStorage.setItem('isAdminLoggedIn', 'true');
             setLoginError('');
+            if (editId) fetchOldTestData(editId); // Nếu đang edit thì load data luôn
         } else {
             setLoginError('Sai mật khẩu!');
             setPasswordInput('');
@@ -57,7 +84,7 @@ const AdminScreen = () => {
     };
 
     // ==========================================
-    // 2. LOGIC XỬ LÝ FORM ĐỘNG (BUILDER)
+    // 2. LOGIC FORM ĐỘNG (Thêm trường answer)
     // ==========================================
     const generateId = (prefix) => `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
 
@@ -67,7 +94,8 @@ const AdminScreen = () => {
             type: type,
             instruction: '',
             options: type === 'matching_headings' ? [''] : undefined,
-            questions: [{ id: generateId('q'), text: '', options: type === 'multiple_choice' ? ['', '', '', ''] : undefined }]
+            // Thêm trường answer mặc định trống cho câu hỏi
+            questions: [{ id: generateId('q'), text: '', answer: '', options: type === 'multiple_choice' ? ['', '', '', ''] : undefined }]
         };
         setQuestionGroups([...questionGroups, newGroup]);
     };
@@ -80,11 +108,10 @@ const AdminScreen = () => {
         setQuestionGroups(questionGroups.map(g => g.id === groupId ? { ...g, [field]: value } : g));
     };
 
-    // Logic xử lý câu hỏi bên trong Group
     const addQuestion = (groupId, groupType) => {
         setQuestionGroups(questionGroups.map(g => {
             if (g.id !== groupId) return g;
-            const newQ = { id: generateId('q'), text: '', options: groupType === 'multiple_choice' ? ['', '', '', ''] : undefined };
+            const newQ = { id: generateId('q'), text: '', answer: '', options: groupType === 'multiple_choice' ? ['', '', '', ''] : undefined };
             return { ...g, questions: [...g.questions, newQ] };
         }));
     };
@@ -106,7 +133,6 @@ const AdminScreen = () => {
         }));
     };
 
-    // Logic đặc thù cho Multiple Choice Options và Matching Headings
     const updateQuestionOption = (groupId, questionId, optionIndex, value) => {
         setQuestionGroups(questionGroups.map(g => {
             if (g.id !== groupId) return g;
@@ -146,9 +172,8 @@ const AdminScreen = () => {
         }));
     };
 
-
     // ==========================================
-    // 3. XỬ LÝ UPLOAD LÊN DATABASE
+    // 3. XỬ LÝ LƯU (INSERT HOẶC UPDATE)
     // ==========================================
     const handleUpload = async (e) => {
         e.preventDefault();
@@ -167,20 +192,37 @@ const AdminScreen = () => {
         try {
             setIsSubmitting(true);
             
-            // Không cần JSON.parse nữa vì questionGroups đã là mảng Javascript chuẩn
-            const { error } = await supabase
-                .from('reading_tests')
-                .insert([{ title, level, passage_html: html, questions_json: questionGroups }]);
+            let resultError;
 
-            if (error) throw error;
+            if (editId) {
+                // CHẾ ĐỘ CHỈNH SỬA: Gọi lệnh UPDATE bài thi hiện tại
+                const { error } = await supabase
+                    .from('reading_tests')
+                    .update({ title, level, passage_html: html, questions_json: questionGroups })
+                    .eq('id', editId);
+                resultError = error;
+            } else {
+                // CHẾ ĐỘ ĐĂNG MỚI: Gọi lệnh INSERT
+                const { error } = await supabase
+                    .from('reading_tests')
+                    .insert([{ title, level, passage_html: html, questions_json: questionGroups }]);
+                resultError = error;
+            }
 
-            setStatus({ type: 'success', msg: 'Upload thành công! Đề thi đã xuất hiện trên trang chủ.' });
+            if (resultError) throw resultError;
+
+            setStatus({ 
+                type: 'success', 
+                msg: editId ? 'Cập nhật đề thi thành công!' : 'Upload thành công! Đề thi đã xuất hiện trên trang chủ.' 
+            });
             
-            // Reset form
-            setTitle('');
-            setLevel('Intermediate');
-            setHtml('');
-            setQuestionGroups([]);
+            if (!editId) {
+                // Đăng mới thì xoá trắng form
+                setTitle('');
+                setLevel('Intermediate');
+                setHtml('');
+                setQuestionGroups([]);
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (error) {
             setStatus({ type: 'error', msg: 'Lỗi: ' + error.message });
@@ -189,10 +231,6 @@ const AdminScreen = () => {
         }
     };
 
-
-    // ==========================================
-    // VIEW 1: AUTH POPUP
-    // ==========================================
     if (!isAuthenticated) {
         return (
             <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
@@ -217,16 +255,16 @@ const AdminScreen = () => {
         );
     }
 
-    // ==========================================
-    // VIEW 2: ADMIN PORTAL
-    // ==========================================
     return (
         <div className="min-h-screen bg-gray-50 p-8 overflow-y-auto">
             <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-8">
                 <div className="flex justify-between items-center mb-6 border-b pb-4">
-                    <h2 className="text-2xl font-bold text-gray-800"><i className="fa-solid fa-cloud-arrow-up mr-2 text-indigo-600"></i>Soạn thảo đề thi mới</h2>
+                    <h2 className="text-2xl font-bold text-gray-800">
+                        <i className="fa-solid fa-cloud-arrow-up mr-2 text-indigo-600"></i>
+                        {editId ? 'Chỉnh sửa đề thi' : 'Soạn thảo đề thi mới'}
+                    </h2>
                     <div className="flex items-center gap-4">
-                        <Link to="/" className="text-indigo-600 hover:underline font-medium text-sm">Về trang chủ</Link>
+                        <Link to="/" className="text-indigo-600 cursor-pointer hover:underline font-medium text-sm">Về trang chủ</Link>
                         <button onClick={handleLogout} className="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 px-4 py-2 rounded font-medium text-sm transition flex items-center gap-2">
                             <i className="fa-solid fa-right-from-bracket"></i> Thoát
                         </button>
@@ -270,9 +308,7 @@ const AdminScreen = () => {
                     {/* BUILDER CÂU HỎI MỚI */}
                     <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                         <div className="flex justify-between items-center border-b pb-2 mb-6">
-                            <h3 className="font-bold text-gray-700"><i className="fa-solid fa-list-check mr-2"></i>3. Bộ câu hỏi</h3>
-                            
-                            {/* Nút thêm nhóm câu hỏi */}
+                            <h3 className="font-bold text-gray-700"><i className="fa-solid fa-list-check mr-2"></i>3. Bộ câu hỏi và Đáp án</h3>
                             <div className="flex gap-2">
                                 <button type="button" onClick={() => addQuestionGroup('true_false_not_given')} className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1.5 rounded text-sm font-medium transition">+ T/F/NG</button>
                                 <button type="button" onClick={() => addQuestionGroup('multiple_choice')} className="bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1.5 rounded text-sm font-medium transition">+ Trắc nghiệm</button>
@@ -299,16 +335,15 @@ const AdminScreen = () => {
 
                                         <div className="mb-4">
                                             <label className="block text-sm text-gray-600 mb-1">Lời chỉ dẫn (Instruction)</label>
-                                            <input type="text" value={group.instruction} onChange={(e) => updateGroup(group.id, 'instruction', e.target.value)} className="w-full border border-gray-200 rounded p-2 text-sm bg-gray-50 focus:bg-white outline-none focus:ring-1 focus:ring-indigo-500" placeholder="VD: Choose the correct letter, A, B, C or D..." />
+                                            <input type="text" value={group.instruction} onChange={(e) => updateGroup(group.id, 'instruction', e.target.value)} className="w-full border border-gray-200 rounded p-2 text-sm bg-gray-50 focus:bg-white outline-none" placeholder="VD: Choose the correct letter..." />
                                         </div>
 
-                                        {/* Giao diện nhập Headings cho loại Nối */}
                                         {group.type === 'matching_headings' && (
                                             <div className="mb-4 p-4 bg-purple-50 rounded border border-purple-100">
                                                 <label className="block text-sm font-semibold text-purple-800 mb-2">Danh sách Headings</label>
                                                 {group.options.map((opt, oIdx) => (
                                                     <div key={oIdx} className="flex gap-2 mb-2">
-                                                        <input type="text" value={opt} onChange={(e) => updateHeadingOption(group.id, oIdx, e.target.value)} className="flex-1 border border-gray-300 rounded p-1.5 text-sm outline-none" placeholder="Nhập text heading..." />
+                                                        <input type="text" value={opt} onChange={(e) => updateHeadingOption(group.id, oIdx, e.target.value)} className="flex-1 border border-gray-300 rounded p-1.5 text-sm outline-none" placeholder={`Heading ${oIdx + 1}`} />
                                                         <button type="button" onClick={() => removeHeadingOption(group.id, oIdx)} className="text-red-500 hover:bg-red-50 px-2 rounded"><i className="fa-solid fa-xmark"></i></button>
                                                     </div>
                                                 ))}
@@ -316,36 +351,57 @@ const AdminScreen = () => {
                                             </div>
                                         )}
 
-                                        {/* Danh sách các câu hỏi trong nhóm */}
-                                        <div className="space-y-3 pl-4 border-l-2 border-indigo-200">
+                                        {/* Danh sách câu hỏi và ô ĐÁP ÁN ĐÚNG tương ứng */}
+                                        <div className="space-y-4 pl-4 border-l-2 border-indigo-200">
                                             {group.questions.map((q, qIdx) => (
-                                                <div key={q.id} className="relative">
-                                                    <div className="flex gap-2 items-start">
+                                                <div key={q.id} className="p-3 bg-slate-50 rounded-lg border border-gray-100">
+                                                    <div className="flex gap-2 items-start mb-2">
                                                         <span className="text-gray-400 font-bold mt-1.5">{qIdx + 1}.</span>
-                                                        <input 
-                                                            type="text" 
-                                                            value={q.text} 
-                                                            onChange={(e) => updateQuestion(group.id, q.id, 'text', e.target.value)} 
-                                                            className="flex-1 border border-gray-300 rounded p-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" 
-                                                            placeholder={group.type === 'gap_fill' ? "Câu hỏi có chứa [GAP] ở giữa..." : "Nhập câu hỏi..."} 
-                                                        />
+                                                        <input type="text" value={q.text} onChange={(e) => updateQuestion(group.id, q.id, 'text', e.target.value)} className="flex-1 border border-gray-300 rounded p-2 text-sm outline-none bg-white" placeholder={group.type === 'gap_fill' ? "Câu hỏi chứa dấu ___ hoặc [GAP]..." : "Nhập câu hỏi..."} />
                                                         <button type="button" onClick={() => removeQuestion(group.id, q.id)} className="text-red-400 hover:text-red-600 mt-2 ml-1"><i className="fa-solid fa-trash"></i></button>
                                                     </div>
 
-                                                    {/* Nhập đáp án A B C D cho Trắc nghiệm */}
                                                     {group.type === 'multiple_choice' && (
-                                                        <div className="grid grid-cols-2 gap-2 mt-2 ml-6">
+                                                        <div className="grid grid-cols-2 gap-2 mt-2 ml-6 mb-3">
                                                             {q.options.map((opt, optIdx) => (
                                                                 <div key={optIdx} className="flex items-center gap-2">
                                                                     <span className="text-xs font-bold text-gray-400">{String.fromCharCode(65 + optIdx)}.</span>
-                                                                    <input type="text" value={opt} onChange={(e) => updateQuestionOption(group.id, q.id, optIdx, e.target.value)} className="flex-1 border border-gray-200 rounded p-1.5 text-xs outline-none focus:border-indigo-400" placeholder={`Đáp án ${String.fromCharCode(65 + optIdx)}`} />
+                                                                    <input type="text" value={opt} onChange={(e) => updateQuestionOption(group.id, q.id, optIdx, e.target.value)} className="flex-1 border border-gray-200 rounded p-1.5 text-xs outline-none bg-white" placeholder={`Đáp án ${String.fromCharCode(65 + optIdx)}`} />
                                                                 </div>
                                                             ))}
                                                         </div>
                                                     )}
+
+                                                    {/* Ô ĐIỀN ĐÁP ÁN ĐÚNG TỰ ĐỘNG THAY ĐỔI THEO DẠNG CÂU HỎI */}
+                                                    <div className="flex items-center gap-3 ml-6 mt-2 pt-2 border-t border-dashed border-gray-200">
+                                                        <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider"><i className="fa-solid fa-key mr-1"></i>Đáp án đúng:</span>
+                                                        
+                                                        {group.type === 'true_false_not_given' && (
+                                                            <select value={q.answer || ''} onChange={(e) => updateQuestion(group.id, q.id, 'answer', e.target.value)} className="border border-indigo-300 rounded px-2 py-1 text-xs bg-white text-gray-700 outline-none">
+                                                                <option value="">-- Chọn đáp án đúng --</option>
+                                                                <option value="TRUE">TRUE</option>
+                                                                <option value="FALSE">FALSE</option>
+                                                                <option value="NOT GIVEN">NOT GIVEN</option>
+                                                            </select>
+                                                        )}
+
+                                                        {group.type === 'multiple_choice' && (
+                                                            <select value={q.answer || ''} onChange={(e) => updateQuestion(group.id, q.id, 'answer', e.target.value)} className="border border-indigo-300 rounded px-2 py-1 text-xs bg-white text-gray-700 outline-none">
+                                                                <option value="">-- Chọn chữ cái đúng --</option>
+                                                                <option value="A">A</option>
+                                                                <option value="B">B</option>
+                                                                <option value="C">C</option>
+                                                                <option value="D">D</option>
+                                                            </select>
+                                                        )}
+
+                                                        {(group.type === 'gap_fill' || group.type === 'matching_headings') && (
+                                                            <input type="text" value={q.answer || ''} onChange={(e) => updateQuestion(group.id, q.id, 'answer', e.target.value)} className="border border-indigo-300 rounded px-3 py-1 text-xs bg-white outline-none w-48" placeholder="Nhập từ hoặc ký hiệu đúng..." />
+                                                        )}
+                                                    </div>
                                                 </div>
                                             ))}
-                                            <button type="button" onClick={() => addQuestion(group.id, group.type)} className="text-sm text-indigo-600 hover:underline mt-2"><i className="fa-solid fa-plus mr-1"></i> Thêm câu hỏi vào nhóm này</button>
+                                            <button type="button" onClick={() => addQuestion(group.id, group.type)} className="text-sm text-indigo-600 hover:underline mt-2"><i className="fa-solid fa-plus mr-1"></i> Thêm câu hỏi</button>
                                         </div>
                                     </div>
                                 ))}
@@ -353,8 +409,8 @@ const AdminScreen = () => {
                         )}
                     </div>
 
-                    <button type="submit" disabled={isSubmitting || questionGroups.length === 0} className="bg-indigo-600 text-white px-8 py-4 rounded-md font-bold text-lg hover:bg-indigo-700 disabled:bg-indigo-300 transition w-full shadow-md">
-                        {isSubmitting ? 'Đang xuất bản...' : 'XUẤT BẢN ĐỀ THI LÊN HỆ THỐNG'}
+                    <button type="submit" disabled={isSubmitting || questionGroups.length === 0} className="bg-indigo-600 text-white px-8 py-4 rounded-md font-bold text-lg hover:bg-indigo-700 disabled:bg-indigo-300 transition w-full shadow-md uppercase">
+                        {isSubmitting ? 'Đang xử lý...' : (editId ? 'Cập Nhật Bài Đăng Hiện Tại' : 'XUẤT BẢN ĐỀ THI LÊN HỆ THỐNG')}
                     </button>
                 </form>
             </div>

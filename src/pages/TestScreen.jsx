@@ -218,7 +218,7 @@ const TestScreen = () => {
             <header className="bg-indigo-900 text-white p-4 shadow-md flex justify-between items-center shrink-0 z-10">
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate('/')} className="text-indigo-200 hover:text-white transition" title="Về trang chủ">
-                        <i className="fa-solid fa-arrow-left text-xl"></i>
+                        <i className="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
                     </button>
                     <h1 className="text-xl font-bold line-clamp-1">{testData.title}</h1>
                 </div>
@@ -229,7 +229,7 @@ const TestScreen = () => {
                         </span>
                     )}
                     <span><i className="fa-regular fa-clock mr-1"></i> 60:00</span>
-                    <button className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded font-semibold transition">Submit Test</button>
+                    <button className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded font-semibold transition">Nộp bài</button>
                 </div>
             </header>
 
