@@ -1,5 +1,5 @@
 // ==========================================
-// MÀN HÌNH TRANG CHỦ (DANH SÁCH BÀI THI)
+// MÀN HÌNH TRANG CHỦ (DANH SÁCH BÀI THI NÂNG CẤP UI/UX)
 // ==========================================
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,16 +12,15 @@ const HomeScreen = () => {
 
     const navigate = useNavigate();
 
-    // State cho filter, search, sort
     const [searchQuery, setSearchQuery] = useState('');
     const [filterLevel, setFilterLevel] = useState('All');
     const [sortOrder, setSortOrder] = useState('Newest');
 
     const LEVEL_MAP = {
-        '45': { label: 'Band 4.0 - 5.0', className: 'bg-green-100 text-green-700' },
-        '56': { label: 'Band 5.0 - 6.0', className: 'bg-blue-100 text-blue-700' },
-        '78': { label: 'Band 7.0 - 8.0', className: 'bg-yellow-100 text-yellow-700' },
-        '89': { label: 'Band 8.0 - 9.0', className: 'bg-red-100 text-red-700' }
+        '45': { label: 'Band 4.0 - 5.0', className: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
+        '56': { label: 'Band 5.0 - 6.0', className: 'bg-blue-50 text-blue-700 border border-blue-200' },
+        '78': { label: 'Band 7.0 - 8.0', className: 'bg-amber-50 text-amber-700 border border-amber-200' },
+        '89': { label: 'Band 8.0 - 9.0', className: 'bg-rose-50 text-rose-700 border border-rose-200' }
     };
 
     useEffect(() => {
@@ -42,41 +41,32 @@ const HomeScreen = () => {
         } catch (error) {
             console.error('Lỗi khi tải danh sách bài thi:', error);
         } finally {
-            setLoading(false);
+            // Cố tình delay 400ms để người dùng kịp nhìn thấy hiệu ứng Skeleton mượt mà
+            setTimeout(() => setLoading(false), 400);
         }
     };
 
     const handleLogout = () => {
         localStorage.removeItem('isAdminLoggedIn');
-        setIsAdmin(false);
+        setIsAdmin(false); 
         navigate('/');
     };
 
-    // ==========================================
-    // LOGIC XÓA BÀI THI DÀNH CHO ADMIN
-    // ==========================================
     const handleDeleteTest = async (testId, testTitle) => {
-        const confirmDelete = window.confirm(`Bạn có chắc chắn muốn xóa bài thi "${testTitle}" không? Hành động này không thể hoàn tác.`);
+        const confirmDelete = window.confirm(`Bạn có chắc chắn muốn xóa bài thi "${testTitle}" không?`);
         if (!confirmDelete) return;
 
         try {
-            const { error } = await supabase
-                .from('reading_tests')
-                .delete()
-                .eq('id', testId);
-
+            const { error } = await supabase.from('reading_tests').delete().eq('id', testId);
             if (error) throw error;
-
-            // Xóa thành công, cập nhật lại state danh sách ngay lập tức
             setTests(tests.filter(test => test.id !== testId));
             alert('Đã xóa bài thi thành công!');
         } catch (error) {
-            console.error('Lỗi khi xóa bài thi:', error);
-            alert('Có lỗi xảy ra khi xóa bài thi. Vui lòng thử lại.');
+            console.error(error);
+            alert('Có lỗi xảy ra.');
         }
     };
 
-    // Logic Lọc và Sắp xếp
     const filteredAndSortedTests = tests
         .filter(test => {
             const matchesSearch = test.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -89,53 +79,80 @@ const HomeScreen = () => {
             return new Date(b.created_at) - new Date(a.created_at);
         });
 
-    return (
-        <div className="min-h-screen bg-gray-50 pb-12">
-            {/* Header Trang Chủ */}
-            <header className="bg-indigo-900 text-white p-6 shadow-md">
-                <div className="max-w-6xl mx-auto flex justify-between items-center">
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <i className="fa-solid fa-graduation-cap"></i> IELTS-TV
-                    </h1>
+    // COMPONENT CON: HIỆN KHUNG XÁM KHI ĐANG LOAD (SKELETON SCREEN)
+    const SkeletonLoader = () => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+                <div key={n} className="bg-white rounded-2xl h-64 border border-gray-200 p-6 flex flex-col justify-between">
+                    <div>
+                        <div className="flex justify-between mb-4">
+                            <div className="h-6 w-24 bg-gray-200 rounded-full"></div>
+                            <div className="h-4 w-16 bg-gray-200 rounded"></div>
+                        </div>
+                        <div className="h-5 bg-gray-200 rounded w-5/6 mb-2"></div>
+                        <div className="h-5 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                    <div className="h-10 bg-gray-200 rounded-xl w-full"></div>
+                </div>
+            ))}
+        </div>
+    );
 
+    return (
+        <div className="min-h-screen bg-[#f8fafc] pb-16 antialiased selection:bg-indigo-500 selection:text-white">
+            {/* Header Hiện Đại */}
+            <header className="bg-indigo-900 text-white p-5 shadow-sm sticky top-0 z-50 backdrop-blur-md bg-indigo-900/95">
+                <div className="max-w-6xl mx-auto flex justify-between items-center">
+                    <h1 className="text-2xl font-black tracking-tight flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+                        <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">IELTS</span>-TV
+                    </h1>
+                    
                     {isAdmin ? (
                         <div className="flex items-center gap-3">
-                            <Link to="/admin" className="bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded text-indigo-100 font-medium transition flex items-center gap-2 text-sm shadow-sm">
+                            <Link to="/admin" className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 text-sm shadow-sm active:scale-95">
                                 <i className="fa-solid fa-cloud-arrow-up"></i> Upload tài liệu
                             </Link>
-                            <button
-                                onClick={handleLogout}
-                                className="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 cursor-pointer px-4 py-2 rounded font-medium text-sm transition flex items-center gap-2 shadow-sm"
-                            >
+                            <button onClick={handleLogout} className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 text-sm flex items-center gap-2 shadow-sm active:scale-95">
                                 <i className="fa-solid fa-right-from-bracket"></i> Thoát
                             </button>
                         </div>
                     ) : (
-                        <Link to="/admin" className="text-indigo-200 hover:text-white font-medium transition flex items-center gap-2 text-sm">
+                        <Link to="/admin" className="text-indigo-200 hover:text-white font-semibold transition-colors duration-200 flex items-center gap-2 text-sm bg-white/10 px-4 py-2 rounded-xl hover:bg-white/10">
                             <i className="fa-solid fa-shield-halved"></i> Admin Portal
                         </Link>
                     )}
                 </div>
             </header>
 
-            <div className="max-w-6xl mx-auto px-6 mt-8">
-                {/* Thanh Công Cụ (Search, Filter, Sort) */}
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 mb-8">
+            {/* MỞ KHÓA HERO SECTION CỰC ĐẸP VỚI GRADIENT */}
+            <div className="bg-gradient-to-br from-indigo-950 via-indigo-900 to-slate-900 text-white py-16 px-6 shadow-md border-b border-indigo-950">
+                <div className="max-w-4xl mx-auto text-center space-y-4">
+                    <span className="bg-indigo-500/20 text-indigo-300 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-widest border border-indigo-500/30">Nền tảng công nghệ mới 2026</span>
+                    <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">Reading Practice Library</h2>
+                    <p className="text-slate-300 text-base md:text-lg max-w-2xl mx-auto font-normal leading-relaxed">
+                        Nâng cao tốc độ đọc và kỹ năng xử lý keyword với hệ thống phân tích phòng thi thực tế, chia đôi màn hình thông minh.
+                    </p>
+                </div>
+            </div>
+
+            <div className="max-w-6xl mx-auto px-6 -mt-8 relative z-10">
+                {/* Thanh Công Cụ mượt mà */}
+                <div className="bg-white p-4 rounded-2xl shadow-xl shadow-slate-100/70 border border-slate-200/60 flex flex-col md:flex-row gap-4 mb-10">
                     <div className="flex-1 relative">
-                        <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
                         <input
                             type="text"
-                            placeholder="Tìm kiếm tên bài thi..."
+                            placeholder="Tìm kiếm tiêu đề bài thi hoặc từ khóa..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                            className="w-full pl-11 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-slate-700 text-sm"
                         />
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex gap-3">
                         <select
                             value={filterLevel}
                             onChange={(e) => setFilterLevel(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none"
+                            className="border border-slate-200 rounded-xl px-4 py-2.5 bg-white text-slate-600 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer"
                         >
                             <option value="All">Tất cả độ khó</option>
                             <option value="45">Band 4.0 - 5.0</option>
@@ -146,67 +163,67 @@ const HomeScreen = () => {
                         <select
                             value={sortOrder}
                             onChange={(e) => setSortOrder(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none"
+                            className="border border-slate-200 rounded-xl px-4 py-2.5 bg-white text-slate-600 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer"
                         >
                             <option value="Newest">Mới nhất</option>
-                            <option value="A-Z">A - Z</option>
-                            <option value="Z-A">Z - A</option>
+                            <option value="A-Z">Tên bài: A - Z</option>
+                            <option value="Z-A">Tên bài: Z - A</option>
                         </select>
                     </div>
                 </div>
 
-                {/* Danh Sách Bài Thi */}
+                {/* Phần Render Dữ Liệu */}
                 {loading ? (
-                    <div className="text-center py-20">
-                        <i className="fa-solid fa-spinner fa-spin text-4xl text-indigo-600 mb-4"></i>
-                        <p className="text-gray-600 font-medium">Đang tải danh sách bài thi...</p>
-                    </div>
+                    <SkeletonLoader />
                 ) : filteredAndSortedTests.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
-                        <p className="text-gray-500 text-lg">Không tìm thấy bài thi nào phù hợp.</p>
+                    <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm">
+                        <i className="fa-regular fa-folder-open text-4xl text-slate-300 mb-3"></i>
+                        <p className="text-slate-400 font-medium">Không tìm thấy bài thi nào phù hợp với bộ lọc.</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    // Hiệu ứng fade-in nhẹ khi hiển thị grid danh sách
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-500">
                         {filteredAndSortedTests.map((test) => {
-                            const levelConfig = LEVEL_MAP[test.level] || { label: test.level || 'Chưa phân loại', className: 'bg-gray-100 text-gray-700' };
+                            const levelConfig = LEVEL_MAP[test.level] || { label: test.level || 'Chưa phân loại', className: 'bg-slate-100 text-slate-700' };
                             return (
-                                <div key={test.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition duration-200 overflow-hidden flex flex-col">
+                                /* ÁP DỤNG HIỆU ỨNG HOVER CHO CARD */
+                                <div key={test.id} className="bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-xl hover:border-indigo-200 hover:-translate-y-1.5 transition-all duration-300 overflow-hidden flex flex-col justify-between group">
                                     <div className="p-6 flex-1">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <span className={`px-3 py-1 text-xs font-bold rounded-full ${levelConfig.className}`}>
+                                        <div className="flex justify-between items-center mb-4">
+                                            <span className={`px-2.5 py-0.5 text-xs font-bold rounded-md ${levelConfig.className}`}>
                                                 {levelConfig.label}
                                             </span>
-                                            <span className="text-gray-400 text-sm">
-                                                <i className="fa-regular fa-calendar mr-1"></i>
+                                            <span className="text-slate-400 text-xs flex items-center gap-1 font-medium">
+                                                <i className="fa-regular fa-calendar"></i>
                                                 {new Date(test.created_at).toLocaleDateString('vi-VN')}
                                             </span>
                                         </div>
-                                        <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2" title={test.title}>
+                                        {/* Hiệu ứng đổi màu chữ tiêu đề khi di chuột vào Card */}
+                                        <h3 className="text-lg font-bold text-slate-800 mb-2 line-clamp-2 group-hover:text-indigo-600 transition-colors duration-200" title={test.title}>
                                             {test.title}
                                         </h3>
-                                        <p className="text-gray-500 text-sm mb-4">Reading Passage & Questions Set.</p>
+                                        <p className="text-slate-400 text-xs font-normal">IELTS Reading Full Passage & Questions Practice Set.</p>
                                     </div>
 
-                                    <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 space-y-2">
+                                    <div className="bg-slate-50/80 px-6 py-4 border-t border-slate-100 space-y-2.5">
                                         <Link
                                             to={`/test/${test.id}`}
-                                            className="block w-full text-center bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 font-semibold py-2 px-4 rounded-lg transition duration-200"
+                                            className="block w-full text-center bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 hover:shadow-md hover:shadow-indigo-200 font-bold py-2.5 px-4 rounded-xl transition-all duration-200 text-sm"
                                         >
-                                            Bắt Đầu Làm Bài <i className="fa-solid fa-arrow-right ml-1"></i>
+                                            Bắt Đầu Làm Bài <i className="fa-solid fa-arrow-right ml-0.5 group-hover:translate-x-1 transition-transform"></i>
                                         </Link>
 
-                                        {/* CÁC NÚT DÀNH RIÊNG CHO ADMIN */}
                                         {isAdmin && (
-                                            <div className="flex gap-2 pt-2 border-t border-gray-200 mt-2">
+                                            <div className="flex gap-2 pt-1 border-t border-slate-200/60 mt-1">
                                                 <button
                                                     onClick={() => navigate(`/admin?edit=${test.id}`)}
-                                                    className="flex-1 bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 py-1.5 rounded-lg text-sm font-medium transition flex justify-center items-center gap-1"
+                                                    className="flex-1 bg-white border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 py-2 rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1 active:scale-95"
                                                 >
                                                     <i className="fa-solid fa-pen-to-square"></i> Sửa
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteTest(test.id, test.title)}
-                                                    className="flex-1 bg-white border border-red-200 text-red-600 hover:bg-red-50 py-1.5 rounded-lg text-sm font-medium transition flex justify-center items-center gap-1"
+                                                    className="flex-1 bg-white border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 py-2 rounded-xl text-xs font-semibold transition-all flex justify-center items-center gap-1 active:scale-95"
                                                 >
                                                     <i className="fa-solid fa-trash-can"></i> Xóa
                                                 </button>
