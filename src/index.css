@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@source "./**/*.{js,ts,jsx,tsx}";
+
+/* Tùy chỉnh thanh cuộn cho mượt mà */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.reading-content p { margin-bottom: 1rem; line-height: 1.8; font-size: 1.05rem; color: #334155; }
+.reading-content h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: #0f172a; }
