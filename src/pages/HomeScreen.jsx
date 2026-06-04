@@ -127,10 +127,9 @@ const HomeScreen = () => {
             {/* MỞ KHÓA HERO SECTION CỰC ĐẸP VỚI GRADIENT */}
             <div className="bg-gradient-to-br from-indigo-950 via-indigo-900 to-slate-900 text-white py-16 px-6 shadow-md border-b border-indigo-950">
                 <div className="max-w-4xl mx-auto text-center space-y-4">
-                    <span className="bg-indigo-500/20 text-indigo-300 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-widest border border-indigo-500/30">Nền tảng công nghệ mới 2026</span>
                     <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">Reading Practice Library</h2>
                     <p className="text-slate-300 text-base md:text-lg max-w-2xl mx-auto font-normal leading-relaxed">
-                        Nâng cao tốc độ đọc và kỹ năng xử lý keyword với hệ thống phân tích phòng thi thực tế, chia đôi màn hình thông minh.
+                        Hỗ trợ luyện tập kỹ năng đọc hiểu
                     </p>
                 </div>
             </div>
