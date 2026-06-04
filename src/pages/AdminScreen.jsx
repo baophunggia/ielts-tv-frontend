@@ -17,7 +17,7 @@ const AdminScreen = () => {
     const [loginError, setLoginError] = useState('');
 
     const [title, setTitle] = useState('');
-    const [level, setLevel] = useState('Intermediate');
+    const [level, setLevel] = useState('45');
     const [html, setHtml] = useState('');
     const [questionGroups, setQuestionGroups] = useState([]); 
     
@@ -56,7 +56,7 @@ const AdminScreen = () => {
             
             // Đổ dữ liệu cũ vào các ô Form
             setTitle(data.title);
-            setLevel(data.level || 'Intermediate');
+            setLevel(data.level || '45');
             setHtml(data.passage_html);
             setQuestionGroups(data.questions_json || []);
         } catch (error) {
@@ -219,7 +219,7 @@ const AdminScreen = () => {
             if (!editId) {
                 // Đăng mới thì xoá trắng form
                 setTitle('');
-                setLevel('Intermediate');
+                setLevel('45');
                 setHtml('');
                 setQuestionGroups([]);
             }
@@ -289,9 +289,10 @@ const AdminScreen = () => {
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Độ khó</label>
                                 <select value={level} onChange={e => setLevel(e.target.value)} className="w-full border border-gray-300 rounded-md p-3 focus:ring-indigo-500 outline-none bg-white">
-                                    <option value="Foundation">Foundation (Cơ bản)</option>
-                                    <option value="Intermediate">Intermediate (Trung bình)</option>
-                                    <option value="Advanced">Advanced (Nâng cao)</option>
+                                    <option value="45">Band 4.0 - 5.0</option>
+                                    <option value="56">Band 5.0 - 6.0</option>
+                                    <option value="78">Band 7.0 - 8.0</option>
+                                    <option value="89">Band 8.0 - 9.0</option>
                                 </select>
                             </div>
                         </div>

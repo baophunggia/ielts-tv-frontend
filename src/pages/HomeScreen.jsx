@@ -9,13 +9,20 @@ const HomeScreen = () => {
     const [tests, setTests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
-    
+
     const navigate = useNavigate();
 
     // State cho filter, search, sort
     const [searchQuery, setSearchQuery] = useState('');
     const [filterLevel, setFilterLevel] = useState('All');
     const [sortOrder, setSortOrder] = useState('Newest');
+
+    const LEVEL_MAP = {
+        '45': { label: 'Band 4.0 - 5.0', className: 'bg-green-100 text-green-700' },
+        '56': { label: 'Band 5.0 - 6.0', className: 'bg-blue-100 text-blue-700' },
+        '78': { label: 'Band 7.0 - 8.0', className: 'bg-yellow-100 text-yellow-700' },
+        '89': { label: 'Band 8.0 - 9.0', className: 'bg-red-100 text-red-700' }
+    };
 
     useEffect(() => {
         fetchTestsList();
@@ -119,9 +126,10 @@ const HomeScreen = () => {
                             className="border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none"
                         >
                             <option value="All">Tất cả độ khó</option>
-                            <option value="Foundation">Foundation</option>
-                            <option value="Intermediate">Intermediate</option>
-                            <option value="Advanced">Advanced</option>
+                            <option value="45">Band 4.0 - 5.0</option>
+                            <option value="56">Band 5.0 - 6.0</option>
+                            <option value="78">Band 7.0 - 8.0</option>
+                            <option value="89">Band 8.0 - 9.0</option>
                         </select>
                         <select
                             value={sortOrder}
@@ -147,55 +155,56 @@ const HomeScreen = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredAndSortedTests.map((test) => (
-                            <div key={test.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition duration-200 overflow-hidden flex flex-col">
-                                <div className="p-6 flex-1">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <span className={`px-3 py-1 text-xs font-bold rounded-full ${test.level === 'Foundation' ? 'bg-green-100 text-green-700' :
-                                            test.level === 'Advanced' ? 'bg-red-100 text-red-700' :
-                                                'bg-blue-100 text-blue-700' // Default / Intermediate
-                                            }`}>
-                                            {test.level || 'Chưa phân loại'}
-                                        </span>
-                                        <span className="text-gray-400 text-sm">
-                                            <i className="fa-regular fa-calendar mr-1"></i>
-                                            {new Date(test.created_at).toLocaleDateString('vi-VN')}
-                                        </span>
-                                    </div>
-                                    <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2" title={test.title}>
-                                        {test.title}
-                                    </h3>
-                                    <p className="text-gray-500 text-sm mb-4">Reading Passage & Questions Set.</p>
-                                </div>
-                                
-                                <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 space-y-2">
-                                    <Link
-                                        to={`/test/${test.id}`}
-                                        className="block w-full text-center bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 font-semibold py-2 px-4 rounded-lg transition duration-200"
-                                    >
-                                        Bắt Đầu Làm Bài <i className="fa-solid fa-arrow-right ml-1"></i>
-                                    </Link>
-
-                                    {/* CÁC NÚT DÀNH RIÊNG CHO ADMIN */}
-                                    {isAdmin && (
-                                        <div className="flex gap-2 pt-2 border-t border-gray-200 mt-2">
-                                            <button 
-                                                onClick={() => navigate(`/admin?edit=${test.id}`)}
-                                                className="flex-1 bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 py-1.5 rounded-lg text-sm font-medium transition flex justify-center items-center gap-1"
-                                            >
-                                                <i className="fa-solid fa-pen-to-square"></i> Sửa
-                                            </button>
-                                            <button 
-                                                onClick={() => handleDeleteTest(test.id, test.title)}
-                                                className="flex-1 bg-white border border-red-200 text-red-600 hover:bg-red-50 py-1.5 rounded-lg text-sm font-medium transition flex justify-center items-center gap-1"
-                                            >
-                                                <i className="fa-solid fa-trash-can"></i> Xóa
-                                            </button>
+                        {filteredAndSortedTests.map((test) => {
+                            const levelConfig = LEVEL_MAP[test.level] || { label: test.level || 'Chưa phân loại', className: 'bg-gray-100 text-gray-700' };
+                            return (
+                                <div key={test.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition duration-200 overflow-hidden flex flex-col">
+                                    <div className="p-6 flex-1">
+                                        <div className="flex justify-between items-start mb-4">
+                                            {/* Hiển thị màu sắc và nhãn đã được map chuẩn */}
+                                            <span className={`px-3 py-1 text-xs font-bold rounded-full ${levelConfig.className}`}>
+                                                {levelConfig.label}
+                                            </span>
+                                            <span className="text-gray-400 text-sm">
+                                                <i className="fa-regular fa-calendar mr-1"></i>
+                                                {new Date(test.created_at).toLocaleDateString('vi-VN')}
+                                            </span>
                                         </div>
-                                    )}
+                                        <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2" title={test.title}>
+                                            {test.title}
+                                        </h3>
+                                        <p className="text-gray-500 text-sm mb-4">Reading Passage & Questions Set.</p>
+                                    </div>
+
+                                    <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 space-y-2">
+                                        <Link
+                                            to={`/test/${test.id}`}
+                                            className="block w-full text-center bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 font-semibold py-2 px-4 rounded-lg transition duration-200"
+                                        >
+                                            Bắt Đầu Làm Bài <i className="fa-solid fa-arrow-right ml-1"></i>
+                                        </Link>
+
+                                        {/* CÁC NÚT DÀNH RIÊNG CHO ADMIN */}
+                                        {isAdmin && (
+                                            <div className="flex gap-2 pt-2 border-t border-gray-200 mt-2">
+                                                <button
+                                                    onClick={() => navigate(`/admin?edit=${test.id}`)}
+                                                    className="flex-1 bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 py-1.5 rounded-lg text-sm font-medium transition flex justify-center items-center gap-1"
+                                                >
+                                                    <i className="fa-solid fa-pen-to-square"></i> Sửa
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteTest(test.id, test.title)}
+                                                    className="flex-1 bg-white border border-red-200 text-red-600 hover:bg-red-50 py-1.5 rounded-lg text-sm font-medium transition flex justify-center items-center gap-1"
+                                                >
+                                                    <i className="fa-solid fa-trash-can"></i> Xóa
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 )}
             </div>
