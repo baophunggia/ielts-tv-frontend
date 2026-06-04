@@ -19,8 +19,8 @@ const AdminScreen = () => {
     const [title, setTitle] = useState('');
     const [level, setLevel] = useState('45');
     const [html, setHtml] = useState('');
-    const [questionGroups, setQuestionGroups] = useState([]); 
-    
+    const [questionGroups, setQuestionGroups] = useState([]);
+
     const [status, setStatus] = useState({ type: '', msg: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -28,7 +28,7 @@ const AdminScreen = () => {
         toolbar: [
             [{ 'header': [2, 3, false] }],
             ['bold', 'italic', 'underline'],
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
             ['clean']
         ],
     };
@@ -53,7 +53,7 @@ const AdminScreen = () => {
                 .single();
 
             if (error) throw error;
-            
+
             // Đổ dữ liệu cũ vào các ô Form
             setTitle(data.title);
             setLevel(data.level || '45');
@@ -191,7 +191,7 @@ const AdminScreen = () => {
 
         try {
             setIsSubmitting(true);
-            
+
             let resultError;
 
             if (editId) {
@@ -211,11 +211,11 @@ const AdminScreen = () => {
 
             if (resultError) throw resultError;
 
-            setStatus({ 
-                type: 'success', 
-                msg: editId ? 'Cập nhật đề thi thành công!' : 'Upload thành công! Đề thi đã xuất hiện trên trang chủ.' 
+            setStatus({
+                type: 'success',
+                msg: editId ? 'Cập nhật đề thi thành công!' : 'Upload thành công! Đề thi đã xuất hiện trên trang chủ.'
             });
-            
+
             if (!editId) {
                 // Đăng mới thì xoá trắng form
                 setTitle('');
@@ -259,12 +259,12 @@ const AdminScreen = () => {
         <div className="min-h-screen bg-gray-50 p-8 overflow-y-auto">
             <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-8">
                 <div className="flex justify-between items-center mb-6 border-b pb-4">
+                    <Link to="/" className="bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded text-indigo-100 font-medium transition flex items-center gap-2 text-sm shadow-sm"> Về trang chủ</Link>
                     <h2 className="text-2xl font-bold text-gray-800">
                         <i className="fa-solid fa-cloud-arrow-up mr-2 text-indigo-600"></i>
                         {editId ? 'Chỉnh sửa đề thi' : 'Soạn thảo đề thi mới'}
                     </h2>
                     <div className="flex items-center gap-4">
-                        <Link to="/" className="text-indigo-600 cursor-pointer hover:underline font-medium text-sm">Về trang chủ</Link>
                         <button onClick={handleLogout} className="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 cursor-pointer px-4 py-2 rounded font-medium text-sm transition flex items-center gap-2">
                             <i className="fa-solid fa-right-from-bracket"></i> Thoát
                         </button>
@@ -328,7 +328,7 @@ const AdminScreen = () => {
                                 {questionGroups.map((group, index) => (
                                     <div key={group.id} className="bg-white border border-gray-300 rounded-lg p-5 shadow-sm relative">
                                         <button type="button" onClick={() => removeGroup(group.id)} className="absolute top-4 right-4 text-red-400 hover:text-red-600"><i className="fa-solid fa-trash"></i></button>
-                                        
+
                                         <div className="mb-4">
                                             <span className="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded uppercase mr-2">{group.type.replace(/_/g, ' ')}</span>
                                             <span className="font-semibold text-gray-600">Nhóm {index + 1}</span>
@@ -376,7 +376,7 @@ const AdminScreen = () => {
                                                     {/* Ô ĐIỀN ĐÁP ÁN ĐÚNG TỰ ĐỘNG THAY ĐỔI THEO DẠNG CÂU HỎI */}
                                                     <div className="flex items-center gap-3 ml-6 mt-2 pt-2 border-t border-dashed border-gray-200">
                                                         <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider"><i className="fa-solid fa-key mr-1"></i>Đáp án đúng:</span>
-                                                        
+
                                                         {group.type === 'true_false_not_given' && (
                                                             <select value={q.answer || ''} onChange={(e) => updateQuestion(group.id, q.id, 'answer', e.target.value)} className="border border-indigo-300 rounded px-2 py-1 text-xs bg-white text-gray-700 outline-none">
                                                                 <option value="">-- Chọn đáp án đúng --</option>
