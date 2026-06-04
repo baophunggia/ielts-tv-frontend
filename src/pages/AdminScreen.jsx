@@ -266,7 +266,7 @@ const AdminScreen = () => {
                     <div className="flex items-center gap-4">
                         <Link to="/" className="text-indigo-600 cursor-pointer hover:underline font-medium text-sm">Về trang chủ</Link>
                         <button onClick={handleLogout} className="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 px-4 py-2 rounded font-medium text-sm transition flex items-center gap-2">
-                            <i className="fa-solid fa-right-from-bracket"></i> Thoát
+                            <i className="fa-solid fa-right-from-bracket cursor-pointer"></i> Thoát
                         </button>
                     </div>
                 </div>
