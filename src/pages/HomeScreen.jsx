@@ -26,14 +26,12 @@ const HomeScreen = () => {
 
     useEffect(() => {
         fetchTestsList();
-        // Kiểm tra xem trong bộ nhớ trình duyệt có biến isAdminLoggedIn không
         const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
         setIsAdmin(loggedIn);
     }, []);
 
     const fetchTestsList = async () => {
         try {
-            // Chỉ select những trường cần thiết cho list để tối ưu tốc độ
             const { data, error } = await supabase
                 .from('reading_tests')
                 .select('id, title, level, created_at')
@@ -46,6 +44,12 @@ const HomeScreen = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('isAdminLoggedIn');
+        setIsAdmin(false);
+        navigate('/');
     };
 
     // ==========================================
@@ -82,7 +86,6 @@ const HomeScreen = () => {
         .sort((a, b) => {
             if (sortOrder === 'A-Z') return a.title.localeCompare(b.title);
             if (sortOrder === 'Z-A') return b.title.localeCompare(a.title);
-            // Mặc định Newest (vì đã order by created_at từ Supabase nên chỉ cần giữ nguyên)
             return new Date(b.created_at) - new Date(a.created_at);
         });
 
@@ -94,12 +97,21 @@ const HomeScreen = () => {
                     <h1 className="text-2xl font-bold flex items-center gap-2">
                         <i className="fa-solid fa-graduation-cap"></i> IELTS-TV
                     </h1>
+
                     {isAdmin ? (
-                        <Link to="/admin" className="bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded text-indigo-100 font-medium transition flex items-center gap-2">
-                            <i className="fa-solid fa-cloud-arrow-up"></i> Upload tài liệu
-                        </Link>
+                        <div className="flex items-center gap-3">
+                            <Link to="/admin" className="bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded text-indigo-100 font-medium transition flex items-center gap-2 text-sm shadow-sm">
+                                <i className="fa-solid fa-cloud-arrow-up"></i> Upload tài liệu
+                            </Link>
+                            <button
+                                onClick={handleLogout}
+                                className="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 cursor-pointer px-4 py-2 rounded font-medium text-sm transition flex items-center gap-2 shadow-sm"
+                            >
+                                <i className="fa-solid fa-right-from-bracket"></i> Thoát
+                            </button>
+                        </div>
                     ) : (
-                        <Link to="/admin" className="text-indigo-200 hover:text-white font-medium transition flex items-center gap-2">
+                        <Link to="/admin" className="text-indigo-200 hover:text-white font-medium transition flex items-center gap-2 text-sm">
                             <i className="fa-solid fa-shield-halved"></i> Admin Portal
                         </Link>
                     )}
@@ -161,7 +173,6 @@ const HomeScreen = () => {
                                 <div key={test.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition duration-200 overflow-hidden flex flex-col">
                                     <div className="p-6 flex-1">
                                         <div className="flex justify-between items-start mb-4">
-                                            {/* Hiển thị màu sắc và nhãn đã được map chuẩn */}
                                             <span className={`px-3 py-1 text-xs font-bold rounded-full ${levelConfig.className}`}>
                                                 {levelConfig.label}
                                             </span>
@@ -203,7 +214,7 @@ const HomeScreen = () => {
                                         )}
                                     </div>
                                 </div>
-                            )
+                            );
                         })}
                     </div>
                 )}
