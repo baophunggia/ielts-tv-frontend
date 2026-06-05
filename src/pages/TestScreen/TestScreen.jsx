@@ -28,6 +28,7 @@ const TestScreen = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [seconds, setSeconds] = useState(0);
+  const [shareLink, setShareLink] = useState('');
 
   // Bộ đếm thời gian
   useEffect(() => {
@@ -117,7 +118,7 @@ const TestScreen = () => {
     }));
   };
 
-  const handleSubmitTest = useCallback(() => {
+  const handleSubmitTest = useCallback(async () => {
     if (isSubmitted) return;
 
     if (!testData || !testData.questions_json) {
@@ -145,6 +146,28 @@ const TestScreen = () => {
 
     setScore({ correct: correctCount, total: totalCount });
     setIsSubmitted(true);
+
+    // BẮT ĐẦU: Lưu kết quả lên Supabase để lấy Link Share
+    try {
+      const { data, error } = await supabase
+        .from('test_results')
+        .insert([{
+          test_id: testData.id,
+          student_answers: answers,
+          score_correct: correctCount,
+          score_total: totalCount,
+          time_taken: seconds
+        }])
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      // Tạo link share động dựa trên domain hiện tại
+      setShareLink(`${window.location.origin}/share-result/${data.id}`);
+    } catch (err) {
+      console.error("Lỗi khi tạo kết quả chia sẻ:", err);
+    }
   }, [testData, answers, isSubmitted, setScore, setIsSubmitted]);
 
   const handleRetakeTest = useCallback(() => {
@@ -258,6 +281,7 @@ const TestScreen = () => {
         isAllAnswered={isAllAnswered}
         answeredCount={answeredCount}
         totalCount={totalCount}
+        shareLink={shareLink}
       />
       <TestingBody
         isResizing={isResizing}
