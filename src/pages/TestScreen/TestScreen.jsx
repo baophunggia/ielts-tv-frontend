@@ -240,9 +240,25 @@ const TestScreen = () => {
     });
   });
 
+  // Đếm số lượng câu đã được trả lời (bỏ qua khoảng trắng)
+  const answeredCount = Object.values(answers).filter(val => val && val.toString().trim() !== '').length;
+  const totalCount = allDisplayNumbers.length;
+
+  // Xác định cờ: Đã làm đủ tất cả các câu hay chưa?
+  const isAllAnswered = totalCount > 0 && answeredCount === totalCount;
+
   return (
     <div className="flex flex-col h-screen bg-slate-100 font-sans overflow-hidden antialiased">
-      <TestingHeader testData={testData} isSubmitted={isSubmitted} onHandleSubmitTest={handleSubmitTest} onRetakeTest={handleRetakeTest} seconds={seconds} />
+      <TestingHeader
+        testData={testData}
+        isSubmitted={isSubmitted}
+        onHandleSubmitTest={handleSubmitTest}
+        onRetakeTest={handleRetakeTest}
+        seconds={seconds}
+        isAllAnswered={isAllAnswered}
+        answeredCount={answeredCount}
+        totalCount={totalCount}
+      />
       <TestingBody
         isResizing={isResizing}
         splitWidth={splitWidth}

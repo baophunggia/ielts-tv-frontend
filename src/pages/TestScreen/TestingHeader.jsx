@@ -1,17 +1,12 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom'; // Bổ sung import useNavigate
+import { useNavigate } from 'react-router-dom';
 import { formatTime } from './../../utils/timeUtils.js';
 
-// Đổi từ => (...) sang => { return (...) } để có chỗ khai báo Hook
-const TestingHeader = React.memo(({ testData, isSubmitted, onHandleSubmitTest, onRetakeTest, seconds }) => {
-
-    // Gọi hook ngay tại cấp cao nhất bên trong component
+const TestingHeader = React.memo(({ testData, isSubmitted, onHandleSubmitTest, onRetakeTest, seconds, isAllAnswered, answeredCount, totalCount }) => {
     const navigate = useNavigate();
-
     return (
         <header className="bg-indigo-950 text-white px-5 py-3.5 shadow-md flex justify-between items-center shrink-0 z-30 border-b border-indigo-900">
             <div className="flex items-center gap-4 max-w-[60%]">
-                {/* Bây giờ hàm navigate('/') sẽ hoạt động hoàn hảo */}
                 <button onClick={() => navigate('/')} className="text-indigo-300 hover:text-white transition-colors bg-white/5 p-2 rounded-xl" title="Về trang chủ">
                     <i className="fa-solid fa-chevron-left text-base cursor-pointer"></i>
                 </button>
@@ -29,25 +24,25 @@ const TestingHeader = React.memo(({ testData, isSubmitted, onHandleSubmitTest, o
                     <i className="fa-regular fa-clock text-sm animate-pulse text-amber-500"></i> {formatTime(seconds)}
                 </div>
 
-                {isSubmitted && (
+                {isSubmitted ? (
                     <button
                         onClick={onRetakeTest}
                         className="bg-amber-500 hover:bg-amber-600 text-slate-900 cursor-pointer font-bold px-4 py-2 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-md shadow-amber-500/10 active:scale-95"
                     >
                         <i className="fa-solid fa-arrow-rotate-left"></i> Làm lại bài
                     </button>
+                ) : isAllAnswered ? (
+                    <button
+                        onClick={onHandleSubmitTest}
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer font-bold px-4 py-2 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-md shadow-emerald-500/10 active:scale-95"
+                    >
+                        <i className="fa-solid fa-paper-plane"></i> Nộp bài thi
+                    </button>
+                ) : (
+                    <>
+                        <i className="fa-solid fa-lock text-[10px]"></i> Trả lời ({answeredCount}/{totalCount})
+                    </>
                 )}
-
-                <button
-                    onClick={onHandleSubmitTest}
-                    disabled={isSubmitted}
-                    className={`px-5 py-2 rounded-xl text-xs font-black tracking-wide uppercase transition-all shadow-md cursor-pointer active:scale-95 ${isSubmitted
-                            ? 'bg-emerald-600 text-white cursor-not-allowed shadow-none'
-                            : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/10'
-                        }`}
-                >
-                    {isSubmitted ? 'Đã nộp bài' : 'Nộp bài thi'}
-                </button>
             </div>
         </header>
     );
