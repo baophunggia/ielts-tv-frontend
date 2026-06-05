@@ -225,7 +225,7 @@ const GapFill = ({ group, answers, onAnswerChange, isSubmitted }) => (
 );
 
 // ==========================================
-// MÀN HÌNH THI CHÍNH (ĐÃ TICH HỢP RESIZABLE)
+// MÀN HÌNH THI CHÍNH
 // ==========================================
 const TestScreen = () => {
   const { id } = useParams();
@@ -257,7 +257,7 @@ const TestScreen = () => {
     };
   }, [isSubmitted, loading, testData]);
 
-  // Handler phục vụ kéo thả thanh chia đôi màn hình
+  // Handler phục vụ kéo thả thanh chia đôi màn hình (SỬA LỖI GIỚI HẠN TỐI ĐA 70%)
   const startResizing = useCallback((e) => {
     e.preventDefault();
     setIsResizing(true);
@@ -266,13 +266,12 @@ const TestScreen = () => {
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!isResizing) return;
-      const offsetRight = document.body.clientWidth - e.clientX;
       const minWidthPercent = 25;
-      const maxWidthPercent = 75;
+      const maxWidthPercent = 70; // Giới hạn kéo tối đa 70% để bên phải không bị vỡ layout
       let newLeftWidth = (e.clientX / document.body.clientWidth) * 100;
 
-      if (newLeftWidth < minWidthPercent) newLeftWidth = minPercent;
-      if (newLeftWidth > maxWidthPercent) newLeftWidth = maxPercent;
+      if (newLeftWidth < minWidthPercent) newLeftWidth = minWidthPercent;
+      if (newLeftWidth > maxWidthPercent) newLeftWidth = maxWidthPercent;
 
       setSplitWidth(newLeftWidth);
     };
@@ -374,7 +373,7 @@ const TestScreen = () => {
     setSeconds(0);
   };
 
-  // NÂNG CẤP HÀM HIGHLIGHT: Xử lý an toàn tránh crash trang chéo thẻ HTML
+  // SỬA LỖI HIGHLIGHT: Trả về cơ chế đơn giản, an toàn với nền vàng chữ tối màu
   const handleMouseUpHighlight = () => {
     const selection = window.getSelection();
     if (selection.isCollapsed || selection.toString().trim() === '') return;
@@ -387,7 +386,8 @@ const TestScreen = () => {
     }
 
     const markNode = document.createElement('mark');
-    markNode.className = 'bg-amber-200 text-slate-900 cursor-pointer rounded px-0.5 transition-all duration-200 hover:bg-rose-200 border-b border-amber-300';
+    // Trả về UI đơn giản, dễ nhìn: Nền vàng nhạt truyền thống, chữ tối màu
+    markNode.className = 'bg-yellow-200 text-slate-800 cursor-pointer rounded px-1 transition-colors hover:bg-yellow-300';
     markNode.title = "Click để xóa highlight này";
 
     markNode.onclick = function (e) {
@@ -402,11 +402,7 @@ const TestScreen = () => {
     try {
       range.surroundContents(markNode);
     } catch (e) {
-      // Fallback khi bôi đen lỗi chéo cấu trúc thẻ phức tạp (như bôi từ p1 sang p2)
-      console.warn("Bôi đen qua nhiều paragraph. Thực hiện phương pháp bọc nâng cao.");
-      const documentFragment = range.extractContents();
-      markNode.appendChild(documentFragment);
-      range.insertNode(markNode);
+      console.warn("Không thể highlight khi bôi đen chéo qua các đoạn văn.", e);
     }
     selection.removeAllRanges();
   };
