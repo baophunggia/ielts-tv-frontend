@@ -132,23 +132,44 @@ const TestScreen = () => {
     let correctCount = 0;
     let totalCount = 0;
 
-    testData.questions_json.forEach(group => {
-      group.questions.forEach(q => {
-        totalCount++;
-        const studentAns = (answers[q.id] || '').trim().toLowerCase();
-        const correctAns = (q.answer || '').trim().toLowerCase();
-
-        if (studentAns === correctAns && correctAns !== '') {
-          correctCount++;
-        }
-      });
-    });
-
-    setScore({ correct: correctCount, total: totalCount });
-    setIsSubmitted(true);
-
-    // BẮT ĐẦU: Lưu kết quả lên Supabase để lấy Link Share
     try {
+      // 1. VÒNG LẶP CHẤM ĐIỂM AN TOÀN
+      testData.questions_json.forEach(group => {
+        group.questions.forEach(q => {
+
+          if (group.type === 'multiple_choice_multi') {
+            // A. LOGIC CHẤM ĐIỂM: NHIỀU ĐÁP ÁN (ARRAY)
+            const correctKeys = Array.isArray(q.answer) ? q.answer : [];
+            const userKeys = Array.isArray(answers[q.id]) ? answers[q.id] : [];
+
+            // Tính tổng điểm dựa trên số lượng đáp án yêu cầu (VD: Chọn 2 -> Tối đa 2 điểm)
+            totalCount += (group.requiredSelectCount || correctKeys.length);
+
+            // Chấm điểm từng lựa chọn
+            userKeys.forEach(k => {
+              if (correctKeys.includes(k)) correctCount++;
+            });
+
+          } else {
+            // B. LOGIC CHẤM ĐIỂM: 1 ĐÁP ÁN (STRING)
+            totalCount++;
+
+            // Ép kiểu về String an toàn trước khi .trim() để tránh lỗi crash app
+            const studentAns = String(answers[q.id] || '').trim().toUpperCase();
+            const correctAns = String(q.answer || '').trim().toUpperCase();
+
+            if (studentAns === correctAns && correctAns !== '') {
+              correctCount++;
+            }
+          }
+        });
+      });
+
+      // 2. CẬP NHẬT TRẠNG THÁI GIAO DIỆN
+      setScore({ correct: correctCount, total: totalCount });
+      setIsSubmitted(true);
+
+      // 3. LƯU KẾT QUẢ LÊN SUPABASE
       const { data, error } = await supabase
         .from('test_results')
         .insert([{
@@ -163,12 +184,14 @@ const TestScreen = () => {
 
       if (error) throw error;
 
-      // Tạo link share động dựa trên domain hiện tại
+      // Tạo link share động
       setShareLink(`${window.location.origin}/share-result/${data.id}`);
+
     } catch (err) {
-      console.error("Lỗi khi tạo kết quả chia sẻ:", err);
+      console.error("Lỗi trong quá trình chấm bài:", err);
+      alert("Hệ thống gặp lỗi khi chấm điểm. Vui lòng mở F12 xem Console hoặc thử lại!");
     }
-  }, [testData, answers, isSubmitted, setScore, setIsSubmitted]);
+  }, [testData, answers, isSubmitted, seconds]);
 
   const handleRetakeTest = useCallback(() => {
     const confirmRetake = window.confirm("Bạn có muốn làm lại bài thi này không? Toàn bộ kết quả cũ sẽ bị xóa bỏ.");

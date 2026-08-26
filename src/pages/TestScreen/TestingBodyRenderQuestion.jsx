@@ -3,6 +3,9 @@ import MatchingHeadings from './MatchingHeadings';
 import TrueFalseNotGiven from './TrueFalseNotGiven';
 import MultipleChoice from './MultipleChoice';
 import GapFill from './GapFill';
+import MatchingInformation from './MatchingInformation';
+import MatchingFeatures from './MatchingFeatures';
+import MultipleChoiceMulti from './MultipleChoiceMulti';
 
 const TestingBodyRenderQuestion = React.memo(({
     testData,
@@ -38,6 +41,12 @@ const TestingBodyRenderQuestion = React.memo(({
                         return <MultipleChoice key={group.id} {...props} />;
                     case 'gap_fill':
                         return <GapFill key={group.id} {...props} />;
+                    case 'matching_information':
+                        return <MatchingInformation key={group.id} {...props} />;
+                    case 'matching_features':
+                        return <MatchingFeatures key={group.id} {...props} />;
+                    case 'multiple_choice_multi':
+                        return <MultipleChoiceMulti key={group.id} {...props} />;
                     default:
                         return (
                             <div key={group.id} className="p-4 bg-amber-50 rounded">
