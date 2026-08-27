@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import supabase from '../supabaseClient';
-import { isAdminSessionValid, clearAdminSession } from '../utils/adminAuth';
+import { getAdminSession, onAdminAuthChange, adminSignOut } from '../utils/adminAuth';
 
 const HomeScreen = () => {
     const [tests, setTests] = useState([]);
@@ -26,8 +26,20 @@ const HomeScreen = () => {
 
     useEffect(() => {
         fetchTestsList();
-        // FIX BUG: Kiểm tra phiên admin có còn hạn không (8 tiếng), thay vì cờ vĩnh viễn
-        setIsAdmin(isAdminSessionValid());
+
+        let isMounted = true;
+        // Kiểm tra phiên đăng nhập Supabase Auth thật thay vì cờ localStorage tự chế
+        getAdminSession().then((session) => {
+            if (isMounted) setIsAdmin(!!session);
+        });
+        const unsubscribe = onAdminAuthChange((session) => {
+            setIsAdmin(!!session);
+        });
+
+        return () => {
+            isMounted = false;
+            unsubscribe();
+        };
     }, []);
 
     const fetchTestsList = async () => {
@@ -47,8 +59,8 @@ const HomeScreen = () => {
         }
     };
 
-    const handleLogout = () => {
-        clearAdminSession();
+    const handleLogout = async () => {
+        await adminSignOut();
         setIsAdmin(false); 
         navigate('/');
     };

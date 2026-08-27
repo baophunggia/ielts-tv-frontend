@@ -1,43 +1,42 @@
-// ==========================================
-// TIỆN ÍCH XÁC THỰC ADMIN (CLIENT-SIDE)
-// FIX BUG: Trước đây cờ 'isAdminLoggedIn' lưu vĩnh viễn trong localStorage,
-// không bao giờ hết hạn. Trên máy tính dùng chung (phòng máy/thư viện),
-// bất kỳ ai mở lại trình duyệt sau đó cũng nghiễm nhiên có quyền Admin.
-// Giải pháp này thêm mốc thời gian đăng nhập và tự hết hạn sau SESSION_DURATION_MS.
+import supabase from '../supabaseClient';
+
+// ==========================================================
+// XÁC THỰC ADMIN QUA SUPABASE AUTH (THAY THẾ MẬT KHẨU HARDCODE)
+// ==========================================================
+// Trước đây: mật khẩu "P@ssw0rd" nằm thẳng trong file JS gửi tới trình duyệt,
+// và trạng thái đăng nhập chỉ là 1 cờ boolean trong localStorage — không có
+// giá trị bảo mật thực sự, và các thao tác ghi (insert/update/delete) vẫn
+// dùng chung 1 anon key cho tất cả mọi người.
 //
-// LƯU Ý QUAN TRỌNG: Đây vẫn là xác thực phía CLIENT, chỉ ẩn UI admin khỏi người
-// dùng thường, KHÔNG thay thế cho bảo mật thực sự ở tầng Supabase. Để an toàn
-// triệt để, cần bật Row Level Security (RLS) trên Supabase và dùng Supabase Auth
-// thật cho các thao tác insert/update/delete.
-// ==========================================
+// Giờ đây: admin đăng nhập bằng email/mật khẩu THẬT qua Supabase Auth.
+// Supabase tự cấp 1 JWT hợp lệ, RLS policy sẽ dựa vào JWT này (role
+// "authenticated") để quyết định cho phép ghi dữ liệu hay không — dù kẻ xấu
+// có mở Console gọi thẳng API cũng không ghi được nếu chưa đăng nhập đúng.
+//
+// CÁCH TẠO TÀI KHOẢN ADMIN: vào Supabase Dashboard > Authentication > Users
+// > Add user, nhập email + mật khẩu cho giáo viên. KHÔNG dùng form đăng ký
+// công khai nào cả (xem thêm hướng dẫn tắt Sign Up trong rls_policies.sql).
+// ==========================================================
 
-const STORAGE_KEY = 'ielts_tv_admin_session';
-const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 tiếng
+export const adminSignIn = (email, password) =>
+    supabase.auth.signInWithPassword({ email, password });
 
-export const setAdminSession = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ loggedInAt: Date.now() }));
-};
+export const adminSignOut = () => supabase.auth.signOut();
 
-export const clearAdminSession = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    // Xoá luôn cờ cũ (nếu còn sót từ phiên bản trước) để đảm bảo đăng xuất triệt để
-    localStorage.removeItem('isAdminLoggedIn');
-};
-
-export const isAdminSessionValid = () => {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return false;
-        const { loggedInAt } = JSON.parse(raw);
-        if (!loggedInAt) return false;
-
-        const expired = Date.now() - loggedInAt > SESSION_DURATION_MS;
-        if (expired) {
-            clearAdminSession();
-            return false;
-        }
-        return true;
-    } catch (e) {
-        return false;
+export const getAdminSession = async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+        console.error('Lỗi khi lấy phiên đăng nhập:', error);
+        return null;
     }
+    return data.session;
+};
+
+// Đăng ký lắng nghe khi trạng thái đăng nhập đổi (đăng nhập/đăng xuất/token hết hạn)
+// Trả về hàm huỷ đăng ký để gọi trong cleanup của useEffect.
+export const onAdminAuthChange = (callback) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        callback(session);
+    });
+    return () => subscription.unsubscribe();
 };

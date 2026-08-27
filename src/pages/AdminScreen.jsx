@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../supabaseClient';
-import { isAdminSessionValid, setAdminSession, clearAdminSession } from '../utils/adminAuth';
+import { adminSignIn, adminSignOut, getAdminSession, onAdminAuthChange } from '../utils/adminAuth';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { parseQuickImportText, QUICK_IMPORT_TEMPLATE } from '../utils/quickImportParser';
@@ -15,7 +15,10 @@ const AdminScreen = () => {
     // 1. STATES CHUNG
     // ==========================================
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [checkingSession, setCheckingSession] = useState(true);
+    const [emailInput, setEmailInput] = useState('');
     const [passwordInput, setPasswordInput] = useState('');
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [loginError, setLoginError] = useState('');
 
     const [title, setTitle] = useState('');
@@ -41,13 +44,25 @@ const AdminScreen = () => {
     };
 
     useEffect(() => {
-        // FIX BUG: Kiểm tra phiên admin có còn hạn không (8 tiếng), thay vì cờ vĩnh viễn
-        const loggedIn = isAdminSessionValid();
-        setIsAuthenticated(loggedIn);
+        let isMounted = true;
 
-        if (loggedIn && editId) {
-            fetchOldTestData(editId);
-        }
+        // Kiểm tra phiên đăng nhập Supabase Auth thật (JWT), không phải cờ localStorage
+        getAdminSession().then((session) => {
+            if (!isMounted) return;
+            setIsAuthenticated(!!session);
+            setCheckingSession(false);
+            if (session && editId) fetchOldTestData(editId);
+        });
+
+        // Lắng nghe khi đăng nhập/đăng xuất/token hết hạn (vd ở tab khác)
+        const unsubscribe = onAdminAuthChange((session) => {
+            setIsAuthenticated(!!session);
+        });
+
+        return () => {
+            isMounted = false;
+            unsubscribe();
+        };
     }, [editId]);
 
     const fetchOldTestData = async (id) => {
@@ -68,21 +83,26 @@ const AdminScreen = () => {
         }
     };
 
-    const handleLoginSubmit = (e) => {
+    const handleLoginSubmit = async (e) => {
         e.preventDefault();
-        if (passwordInput === 'P@ssw0rd') {
+        setLoginError('');
+        setIsLoggingIn(true);
+        try {
+            const { error } = await adminSignIn(emailInput, passwordInput);
+            if (error) {
+                setLoginError('Sai email hoặc mật khẩu!');
+                setPasswordInput('');
+                return;
+            }
             setIsAuthenticated(true);
-            setAdminSession();
-            setLoginError('');
             if (editId) fetchOldTestData(editId);
-        } else {
-            setLoginError('Sai mật khẩu!');
-            setPasswordInput('');
+        } finally {
+            setIsLoggingIn(false);
         }
     };
 
-    const handleLogout = () => {
-        clearAdminSession();
+    const handleLogout = async () => {
+        await adminSignOut();
         setIsAuthenticated(false);
         navigate('/');
     };
@@ -293,15 +313,26 @@ const AdminScreen = () => {
         }
     };
 
+    if (checkingSession) {
+        return (
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+                <i className="fa-solid fa-spinner fa-spin text-3xl text-indigo-600"></i>
+            </div>
+        );
+    }
+
     if (!isAuthenticated) {
         return (
             <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
                 <div className="bg-white p-8 rounded-xl shadow-lg max-w-sm w-full relative">
                     <h2 className="text-xl font-bold text-gray-800 text-center mb-6">Admin Access</h2>
                     <form onSubmit={handleLoginSubmit}>
-                        <input type="password" required autoFocus value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} placeholder="Nhập mật khẩu..." className="w-full border border-gray-300 rounded-lg p-3 mb-4 outline-none focus:ring-2 focus:ring-indigo-500" />
+                        <input type="email" required autoFocus value={emailInput} onChange={(e) => setEmailInput(e.target.value)} placeholder="Email admin..." className="w-full border border-gray-300 rounded-lg p-3 mb-3 outline-none focus:ring-2 focus:ring-indigo-500" />
+                        <input type="password" required value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} placeholder="Nhập mật khẩu..." className="w-full border border-gray-300 rounded-lg p-3 mb-4 outline-none focus:ring-2 focus:ring-indigo-500" />
                         {loginError && <p className="text-red-500 text-sm font-medium mb-4 text-center">{loginError}</p>}
-                        <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition cursor-pointer">Xác nhận</button>
+                        <button type="submit" disabled={isLoggingIn} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition cursor-pointer disabled:bg-indigo-300">
+                            {isLoggingIn ? 'Đang kiểm tra...' : 'Xác nhận'}
+                        </button>
                     </form>
                 </div>
             </div>
