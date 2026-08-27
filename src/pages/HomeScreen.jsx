@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import supabase from '../supabaseClient';
+import { isAdminSessionValid, clearAdminSession } from '../utils/adminAuth';
 
 const HomeScreen = () => {
     const [tests, setTests] = useState([]);
@@ -25,8 +26,8 @@ const HomeScreen = () => {
 
     useEffect(() => {
         fetchTestsList();
-        const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
-        setIsAdmin(loggedIn);
+        // FIX BUG: Kiểm tra phiên admin có còn hạn không (8 tiếng), thay vì cờ vĩnh viễn
+        setIsAdmin(isAdminSessionValid());
     }, []);
 
     const fetchTestsList = async () => {
@@ -47,7 +48,7 @@ const HomeScreen = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('isAdminLoggedIn');
+        clearAdminSession();
         setIsAdmin(false); 
         navigate('/');
     };
@@ -57,10 +58,15 @@ const HomeScreen = () => {
         if (!confirmDelete) return;
 
         try {
+            // FIX BUG: Xoá các kết quả thi (test_results) liên quan TRƯỚC khi xoá đề thi gốc,
+            // tránh để lại dữ liệu mồ côi (orphan) khiến các link share cũ bị lỗi không rõ nguyên nhân.
+            const { error: resultsError } = await supabase.from('test_results').delete().eq('test_id', testId);
+            if (resultsError) throw resultsError;
+
             const { error } = await supabase.from('reading_tests').delete().eq('id', testId);
             if (error) throw error;
             setTests(tests.filter(test => test.id !== testId));
-            alert('Đã xóa bài thi thành công!');
+            alert('Đã xóa bài thi thành công (bao gồm cả kết quả thi liên quan)!');
         } catch (error) {
             console.error(error);
             alert('Có lỗi xảy ra.');

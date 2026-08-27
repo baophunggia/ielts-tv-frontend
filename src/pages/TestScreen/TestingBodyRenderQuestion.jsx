@@ -25,6 +25,17 @@ const TestingBodyRenderQuestion = React.memo(({
     return (
         <>
             {testData.questions_json.map(group => {
+                // FIX BUG: Bỏ qua các nhóm câu hỏi rỗng (không có câu hỏi nào bên trong)
+                // để tránh crash trắng trang khi group.questions[0] bị undefined
+                if (!group.questions || group.questions.length === 0) {
+                    return (
+                        <div key={group.id} className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm">
+                            <i className="fa-solid fa-triangle-exclamation mr-2"></i>
+                            Nhóm câu hỏi "{(group.type || '').replace(/_/g, ' ')}" đang trống, vui lòng liên hệ giáo viên để kiểm tra lại đề thi.
+                        </div>
+                    );
+                }
+
                 const props = {
                     group,
                     answers,

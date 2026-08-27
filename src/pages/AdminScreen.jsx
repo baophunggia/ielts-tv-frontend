@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../supabaseClient';
+import { isAdminSessionValid, setAdminSession, clearAdminSession } from '../utils/adminAuth';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import { parseQuickImportText, QUICK_IMPORT_TEMPLATE } from '../utils/quickImportParser';
 
 const AdminScreen = () => {
     const navigate = useNavigate();
@@ -24,6 +26,11 @@ const AdminScreen = () => {
     const [status, setStatus] = useState({ type: '', msg: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // TÍNH NĂNG MỚI: Nhập nhanh từ văn bản (giảm thao tác thủ công cho giáo viên)
+    const [showQuickImport, setShowQuickImport] = useState(false);
+    const [quickImportText, setQuickImportText] = useState('');
+    const [quickImportError, setQuickImportError] = useState('');
+
     const modules = {
         toolbar: [
             [{ 'header': [2, 3, false] }],
@@ -34,7 +41,8 @@ const AdminScreen = () => {
     };
 
     useEffect(() => {
-        const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+        // FIX BUG: Kiểm tra phiên admin có còn hạn không (8 tiếng), thay vì cờ vĩnh viễn
+        const loggedIn = isAdminSessionValid();
         setIsAuthenticated(loggedIn);
 
         if (loggedIn && editId) {
@@ -64,7 +72,7 @@ const AdminScreen = () => {
         e.preventDefault();
         if (passwordInput === 'P@ssw0rd') {
             setIsAuthenticated(true);
-            localStorage.setItem('isAdminLoggedIn', 'true');
+            setAdminSession();
             setLoginError('');
             if (editId) fetchOldTestData(editId);
         } else {
@@ -74,7 +82,7 @@ const AdminScreen = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('isAdminLoggedIn');
+        clearAdminSession();
         setIsAuthenticated(false);
         navigate('/');
     };
@@ -133,6 +141,17 @@ const AdminScreen = () => {
     };
 
     const removeQuestion = (groupId, questionId) => {
+        // FIX BUG: Không cho xoá câu hỏi cuối cùng của 1 nhóm để tránh tạo ra nhóm rỗng
+        // (nhóm rỗng từng gây crash trắng trang thi cho học viên)
+        const targetGroup = questionGroups.find(g => g.id === groupId);
+        if (targetGroup && targetGroup.questions.length <= 1) {
+            const confirmRemoveGroup = window.confirm(
+                'Đây là câu hỏi cuối cùng của nhóm này. Xoá câu hỏi sẽ để lại 1 nhóm trống, gây lỗi khi học viên vào làm bài.\n\nBạn có muốn xoá LUÔN CẢ NHÓM này không?'
+            );
+            if (confirmRemoveGroup) removeGroup(groupId);
+            return;
+        }
+
         setQuestionGroups(questionGroups.map(g => {
             if (g.id !== groupId) return g;
             return { ...g, questions: g.questions.filter(q => q.id !== questionId) };
@@ -180,6 +199,36 @@ const AdminScreen = () => {
         }));
     };
 
+    // TÍNH NĂNG MỚI: Nhập nhanh từ văn bản
+    // Giáo viên soạn đề theo mẫu (xem QUICK_IMPORT_TEMPLATE) trong Word/Notepad rồi dán vào,
+    // hệ thống tự động điền Title/Level/Passage/Câu hỏi vào form thay vì bấm tay từng ô.
+    const handleQuickImportParse = () => {
+        setQuickImportError('');
+        try {
+            const result = parseQuickImportText(quickImportText);
+
+            const hasExistingContent = title || (html && html !== '<p><br></p>') || questionGroups.length > 0;
+            if (hasExistingContent) {
+                const proceed = window.confirm('Thao tác này sẽ GHI ĐÈ toàn bộ nội dung đang soạn trên form (tiêu đề, bài đọc, câu hỏi). Bạn có chắc chắn muốn tiếp tục?');
+                if (!proceed) return;
+            }
+
+            if (result.title) setTitle(result.title);
+            if (result.level) setLevel(result.level);
+            setHtml(result.passageHtml);
+            setQuestionGroups(result.questionGroups);
+
+            let successMsg = `Đã phân tích thành công ${result.questionGroups.length} nhóm câu hỏi. Vui lòng rà soát lại bên dưới trước khi Xuất bản.`;
+            if (result.warnings.length > 0) {
+                successMsg += ` (Cảnh báo: ${result.warnings.join('; ')})`;
+            }
+            setStatus({ type: 'success', msg: successMsg });
+            setShowQuickImport(false);
+        } catch (err) {
+            setQuickImportError(err.message);
+        }
+    };
+
     const removeGroupOption = (groupId, index) => {
         setQuestionGroups(questionGroups.map(g => {
             if (g.id !== groupId) return g;
@@ -196,6 +245,29 @@ const AdminScreen = () => {
 
         if (!html || html === '<p><br></p>') return setStatus({ type: 'error', msg: 'Vui lòng nhập nội dung bài đọc!' });
         if (questionGroups.length === 0) return setStatus({ type: 'error', msg: 'Vui lòng tạo ít nhất 1 nhóm câu hỏi!' });
+
+        // FIX BUG: Chặn lưu nếu có nhóm câu hỏi không chứa câu hỏi nào bên trong
+        // (trước đây có thể xoá hết câu hỏi trong 1 nhóm rồi vẫn lưu được, gây crash trang thi)
+        const emptyGroupIndex = questionGroups.findIndex(g => !g.questions || g.questions.length === 0);
+        if (emptyGroupIndex !== -1) {
+            return setStatus({
+                type: 'error',
+                msg: `Nhóm câu hỏi số ${emptyGroupIndex + 1} (${questionGroups[emptyGroupIndex].type.replace(/_/g, ' ')}) không có câu hỏi nào. Vui lòng thêm câu hỏi hoặc xoá cả nhóm này trước khi xuất bản.`
+            });
+        }
+
+        // FIX BUG: Với dạng "Multiple Choice (Nhiều đáp án)", cảnh báo nếu số đáp án đúng
+        // nhập vào không khớp với số lượng bắt buộc phải chọn -> tránh tính sai tổng điểm
+        const mismatchGroup = questionGroups.find(g =>
+            g.type === 'multiple_choice_multi' &&
+            g.questions.some(q => Array.isArray(q.answer) && q.answer.length !== (g.requiredSelectCount || 2))
+        );
+        if (mismatchGroup) {
+            const proceed = window.confirm(
+                `Cảnh báo: Có câu hỏi dạng "Chọn nhiều đáp án" mà số đáp án ĐÚNG bạn nhập không khớp với số lượng yêu cầu học viên phải chọn (VD: yêu cầu chọn 2 nhưng chỉ nhập 1 đáp án đúng). Điều này sẽ khiến điểm tối đa bị tính sai. Bạn có muốn tiếp tục lưu không?`
+            );
+            if (!proceed) return;
+        }
 
         try {
             setIsSubmitting(true);
@@ -247,6 +319,65 @@ const AdminScreen = () => {
 
                 {status.msg && (
                     <div className={`p-4 mb-6 rounded font-medium ${status.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>{status.msg}</div>
+                )}
+
+                {/* ========================================== */}
+                {/* TÍNH NĂNG MỚI: NHẬP NHANH TỪ VĂN BẢN        */}
+                {/* ========================================== */}
+                {!editId && (
+                    <div className="mb-8 bg-gradient-to-br from-indigo-50 to-white border border-indigo-200 rounded-xl p-5">
+                        <div className="flex justify-between items-center flex-wrap gap-3">
+                            <div>
+                                <h3 className="font-bold text-indigo-900 flex items-center gap-2">
+                                    <i className="fa-solid fa-bolt text-amber-500"></i> Nhập nhanh từ văn bản
+                                </h3>
+                                <p className="text-xs text-slate-500 mt-1">Soạn đề theo mẫu có sẵn trong Word/Notepad rồi dán vào đây, hệ thống tự động điền vào form bên dưới — không cần bấm tay từng nút.</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowQuickImport(v => !v)}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition cursor-pointer shrink-0"
+                            >
+                                {showQuickImport ? 'Đóng lại' : 'Mở công cụ nhập nhanh'}
+                            </button>
+                        </div>
+
+                        {showQuickImport && (
+                            <div className="mt-4 space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-semibold text-slate-700">Dán nội dung đề thi theo mẫu:</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setQuickImportText(QUICK_IMPORT_TEMPLATE)}
+                                        className="text-xs text-indigo-600 hover:underline cursor-pointer font-medium"
+                                    >
+                                        Chèn mẫu ví dụ để tham khảo
+                                    </button>
+                                </div>
+                                <textarea
+                                    value={quickImportText}
+                                    onChange={(e) => setQuickImportText(e.target.value)}
+                                    rows={14}
+                                    placeholder={QUICK_IMPORT_TEMPLATE}
+                                    className="w-full border border-slate-300 rounded-lg p-3 text-xs font-mono outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                />
+                                {quickImportError && (
+                                    <p className="text-sm text-rose-600 font-medium bg-rose-50 border border-rose-200 rounded-lg p-3">{quickImportError}</p>
+                                )}
+                                <div className="flex justify-between items-center">
+                                    <p className="text-xs text-slate-400">Hỗ trợ: True/False/NG, Trắc nghiệm 1 đáp án, Trắc nghiệm nhiều đáp án, Điền từ, Matching Headings/Information/Features.</p>
+                                    <button
+                                        type="button"
+                                        onClick={handleQuickImportParse}
+                                        disabled={!quickImportText.trim()}
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-sm font-bold transition cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
+                                    >
+                                        <i className="fa-solid fa-wand-magic-sparkles mr-1.5"></i> Phân tích &amp; điền vào form
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 )}
 
                 <form onSubmit={handleUpload} className="space-y-8">

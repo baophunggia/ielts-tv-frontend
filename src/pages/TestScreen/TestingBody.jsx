@@ -9,7 +9,7 @@ const TestingBody = React.memo(({
     testData,
     onHandleAnswerChange,
     startResizing,
-    isSubmitted, seconds, score, allDisplayNumbers, answers 
+    isSubmitted, seconds, score, allDisplayNumbers, answers, onScrollToQuestion
 }) => (
     // Thêm class ép trình duyệt giữ nguyên màu sắc highlight xanh/đỏ khi xuất file: print:[color-adjust:exact]
     <div className="flex flex-1 overflow-hidden relative print:[color-adjust:exact] print:block print:overflow-visible" style={{ cursor: isResizing ? 'col-resize' : 'default' }}>
@@ -87,11 +87,19 @@ const TestingBody = React.memo(({
                     </p>
                     <div className="grid grid-cols-4 gap-1.5 overflow-y-auto max-h-[70vh] pr-1">
                         {allDisplayNumbers.map((item) => {
-                            const hasAnswer = !!answers[item.id]?.toString().trim();
+                            // FIX BUG: Với dạng "Chọn nhiều đáp án", chỉ coi là "đã trả lời"
+                            // khi đã chọn đủ số lượng yêu cầu (requiredCount), không phải
+                            // chỉ cần chọn 1 đáp án bất kỳ.
+                            const val = answers[item.id];
+                            const hasAnswer = item.groupType === 'multiple_choice_multi'
+                                ? Array.isArray(val) && val.length >= (item.requiredCount || 1)
+                                : !!val?.toString().trim();
                             return (
                                 <button
                                     key={item.num}
-                                    className={`h-8 rounded-lg text-xs font-bold transition-all ${isSubmitted
+                                    type="button"
+                                    onClick={() => onScrollToQuestion && onScrollToQuestion(item.num)}
+                                    className={`h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${isSubmitted
                                         ? 'border border-slate-200 bg-slate-50 text-slate-600'
                                         : hasAnswer
                                             ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-100'
