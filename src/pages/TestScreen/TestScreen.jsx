@@ -10,7 +10,12 @@ import TestingBody from './TestingBody.jsx';
 const TestScreen = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const contentRef = useRef(null);
+
+  // TÍNH NĂNG MỚI: ref trỏ tới component bài đọc (TestingPassage) để gọi
+  // clearAllHighlights() từ nút "Xoá tất cả", + state đếm số lượng highlight
+  // hiện có (để disable nút khi chưa bôi đen gì).
+  const passagePanelRef = useRef(null);
+  const [highlightCount, setHighlightCount] = useState(0);
 
   // State quản lý việc kéo thả chiều rộng màn hình (Resizable)
   const [splitWidth, setSplitWidth] = useState(50); // Tỉ lệ phần trăm (%) vùng bên trái bài đọc
@@ -253,50 +258,17 @@ const TestScreen = () => {
     }
   }, [id]);
 
-  const handleMouseUpHighlight = useCallback(() => {
-    const selection = window.getSelection();
-    // Bỏ qua nếu click chuột mà không bôi đen chữ nào
-    if (!selection || selection.isCollapsed || selection.toString().trim() === '') return;
-
-    const range = selection.getRangeAt(0);
-
-    // Kiểm tra xem vùng chọn có nằm trọn vẹn trong vùng bài đọc không
-    if (contentRef.current && !contentRef.current.contains(range.commonAncestorContainer)) {
-      return;
-    }
-
-    // Tạo thẻ mark với màu nền vàng truyền thống, chữ tối màu dễ đọc
-    const markNode = document.createElement('mark');
-    markNode.className = 'bg-yellow-200 text-slate-900 cursor-pointer rounded px-0.5 transition-colors duration-200 hover:bg-yellow-300';
-    markNode.title = "Click để xóa highlight này";
-
-    // Xử lý sự kiện click để xóa highlight
-    markNode.onclick = function (e) {
-      e.stopPropagation();
-      const parent = this.parentNode;
-      while (this.firstChild) {
-        parent.insertBefore(this.firstChild, this);
-      }
-      parent.removeChild(this);
-    };
-
-    try {
-      // Cách 1: Áp dụng khi bôi đen trong phạm vi 1 thẻ (an toàn nhất)
-      range.surroundContents(markNode);
-    } catch (e) {
-      // Cách 2: Fallback khi bôi đen vắt ngang qua nhiều đoạn văn hoặc thẻ in đậm
-      try {
-        const fragment = range.extractContents();
-        markNode.appendChild(fragment);
-        range.insertNode(markNode);
-      } catch (err) {
-        console.warn("Vùng bôi đen chéo cấu trúc quá phức tạp.", err);
-      }
-    }
-
-    // Bỏ vệt bôi đen mặc định của trình duyệt đi để nhìn cho rõ màu vàng
-    selection.removeAllRanges();
-  }, []);
+  // FIX BUG: Logic bôi đen/xoá highlight trước đây bị lặp lại y hệt ở cả
+  // đây (TestScreen.jsx) và bên trong TestingPassage.jsx, nhưng bản ở đây
+  // KHÔNG hề được TestingBody sử dụng (dead code) — TestingPassage tự chạy
+  // bản riêng của nó. Đã gộp về TestingPassage.jsx làm nguồn duy nhất.
+  // Ở đây chỉ còn giữ lại phần điều khiển "Xoá tất cả highlight".
+  const handleClearAllHighlights = useCallback(() => {
+    if (!passagePanelRef.current || !highlightCount) return;
+    const confirmClear = window.confirm(`Xoá toàn bộ ${highlightCount} vùng đã bôi đen trong bài đọc?`);
+    if (!confirmClear) return;
+    passagePanelRef.current.clearAllHighlights();
+  }, [highlightCount]);
 
   // Điều hướng nhanh đến câu hỏi bên cột phải
   const scrollToQuestion = (displayNum) => {
@@ -381,8 +353,6 @@ const TestScreen = () => {
         isResizing={isResizing}
         splitWidth={splitWidth}
         testData={testData}
-        contentRef={contentRef}
-        onHandleMouseUpHighlight={handleMouseUpHighlight}
         onHandleAnswerChange={handleAnswerChange}
         startResizing={startResizing}
         isSubmitted={isSubmitted}
@@ -390,7 +360,11 @@ const TestScreen = () => {
         score={score}
         allDisplayNumbers={allDisplayNumbers}
         answers={answers}
-        onScrollToQuestion={scrollToQuestion} />
+        onScrollToQuestion={scrollToQuestion}
+        passageRef={passagePanelRef}
+        highlightCount={highlightCount}
+        onHighlightCountChange={setHighlightCount}
+        onClearAllHighlights={handleClearAllHighlights} />
     </div>
   );
 };

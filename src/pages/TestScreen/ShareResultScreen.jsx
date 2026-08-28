@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import supabase from '../../supabaseClient';
 import TestingHeader from './TestingHeader.jsx';
@@ -7,7 +7,6 @@ import TestingBody from './TestingBody.jsx';
 const ShareResultScreen = () => {
     const { resultId } = useParams();
     const navigate = useNavigate();
-    const contentRef = useRef(null);
 
     const [loading, setLoading] = useState(true);
     const [isExpired, setIsExpired] = useState(false);
@@ -127,8 +126,6 @@ const ShareResultScreen = () => {
                 isResizing={false}
                 splitWidth={splitWidth}
                 testData={testData}
-                contentRef={contentRef}
-                onHandleMouseUpHighlight={() => { }} // Vô hiệu hóa highlight
                 onHandleAnswerChange={() => { }} // Vô hiệu hóa thay đổi đáp án
                 startResizing={() => { }} // Khóa thanh kéo
                 isSubmitted={true} // Bật chế độ đã nộp bài (hiện đáp án xanh/đỏ)
@@ -136,6 +133,7 @@ const ShareResultScreen = () => {
                 score={score}
                 allDisplayNumbers={allDisplayNumbers}
                 answers={answers}
+                disableHighlight={true} // FIX BUG: trước đây prop cũ (onHandleMouseUpHighlight) không có tác dụng gì, highlight vẫn hoạt động dù đây là trang chỉ-xem. Giờ khoá đúng cách.
             />
         </div>
     );

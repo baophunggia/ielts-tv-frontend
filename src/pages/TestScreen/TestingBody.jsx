@@ -9,7 +9,8 @@ const TestingBody = React.memo(({
     testData,
     onHandleAnswerChange,
     startResizing,
-    isSubmitted, seconds, score, allDisplayNumbers, answers, onScrollToQuestion
+    isSubmitted, seconds, score, allDisplayNumbers, answers, onScrollToQuestion,
+    passageRef, highlightCount, onHighlightCountChange, onClearAllHighlights, disableHighlight
 }) => (
     // Thêm class ép trình duyệt giữ nguyên màu sắc highlight xanh/đỏ khi xuất file: print:[color-adjust:exact]
     <div className="flex flex-1 overflow-hidden relative print:[color-adjust:exact] print:block print:overflow-visible" style={{ cursor: isResizing ? 'col-resize' : 'default' }}>
@@ -19,12 +20,35 @@ const TestingBody = React.memo(({
             className="h-full bg-white border-r border-slate-200 shadow-sm relative flex flex-col print:hidden"
             style={{ width: `${splitWidth}%` }}
         >
-            <div className="bg-amber-50/80 border-b border-amber-100 text-amber-800 text-[11px] font-semibold px-4 py-2 flex items-center gap-1.5 shrink-0 select-none shadow-sm">
-                <i className="fa-solid fa-marker text-amber-600"></i>
-                <span>Mẹo phòng thi: Bôi đen text để đánh dấu (Highlight). Click trực tiếp vào vùng Highlight để xóa bỏ.</span>
+            <div className="bg-amber-50/80 border-b border-amber-100 text-amber-800 text-[11px] font-semibold px-4 py-2 flex items-center justify-between gap-2 shrink-0 select-none shadow-sm">
+                <div className="flex items-center gap-1.5 min-w-0">
+                    <i className="fa-solid fa-marker text-amber-600 shrink-0"></i>
+                    <span className="truncate">
+                        {disableHighlight
+                            ? 'Chế độ xem kết quả: đáp án đúng/sai đã được tô màu sẵn trong phiếu trả lời bên phải.'
+                            : 'Mẹo phòng thi: Bôi đen text để đánh dấu (Highlight). Click trực tiếp vào vùng Highlight để xóa bỏ.'}
+                    </span>
+                </div>
+                {/* TÍNH NĂNG MỚI: Xoá toàn bộ highlight cùng lúc, không cần click từng vùng */}
+                {!disableHighlight && (
+                    <button
+                        type="button"
+                        onClick={onClearAllHighlights}
+                        disabled={!highlightCount}
+                        title="Xoá toàn bộ vùng đã bôi đen trong bài đọc"
+                        className="shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-md bg-white border border-amber-200 text-amber-700 hover:bg-amber-100 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
+                    >
+                        <i className="fa-solid fa-eraser"></i> Xoá tất cả{highlightCount ? ` (${highlightCount})` : ''}
+                    </button>
+                )}
             </div>
 
-            <TestingPassage passageHtml={testData.passage_html.replace(/&nbsp;/g, ' ')} />
+            <TestingPassage
+                ref={passageRef}
+                passageHtml={testData.passage_html.replace(/&nbsp;/g, ' ')}
+                disabled={disableHighlight}
+                onHighlightCountChange={onHighlightCountChange}
+            />
         </div>
 
         {/* ĐƯỜNG KÉO BAR - ẨN KHI XUẤT PDF */}

@@ -491,6 +491,13 @@ const AdminScreen = () => {
                                             </div>
                                         )}
 
+                                        {group.type === 'matching_information' && (
+                                            <div className="mb-4 p-3 bg-amber-50 rounded border border-amber-200 text-xs text-amber-800 flex items-start gap-2">
+                                                <i className="fa-solid fa-triangle-exclamation mt-0.5 shrink-0"></i>
+                                                <span>Dạng câu hỏi này KHÔNG có danh sách Options riêng — học viên sẽ tự tìm chữ cái đoạn văn (A, B, C...) trong chính bài đọc. Hãy chắc chắn bạn đã <b>đánh dấu chữ cái ở đầu mỗi đoạn văn</b> trong ô "Nội dung bài đọc" bên trên (ví dụ: bôi đậm chữ "A" trước đoạn 1, "B" trước đoạn 2...), nếu không học viên sẽ không biết đáp án dựa vào đâu.</span>
+                                            </div>
+                                        )}
+
                                         <div className="space-y-4 pl-4 border-l-2 border-indigo-200">
                                             {group.questions.map((q, qIdx) => (
                                                 <div key={q.id} className="p-3 bg-slate-50 rounded-lg border border-gray-100">
