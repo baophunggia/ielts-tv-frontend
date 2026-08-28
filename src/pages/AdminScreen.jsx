@@ -104,7 +104,7 @@ const AdminScreen = () => {
     const handleLogout = async () => {
         await adminSignOut();
         setIsAuthenticated(false);
-        navigate('/');
+        navigate('/tests');
     };
 
     // ==========================================
@@ -343,7 +343,7 @@ const AdminScreen = () => {
         <div className="min-h-screen bg-gray-50 p-8 overflow-y-auto">
             <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-8">
                 <div className="flex justify-between items-center mb-6 border-b pb-4">
-                    <Link to="/" className="bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded text-indigo-100 font-medium transition text-sm cursor-pointer">Về trang chủ</Link>
+                    <Link to="/tests" className="bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded text-indigo-100 font-medium transition text-sm cursor-pointer">Về danh sách đề thi</Link>
                     <h2 className="text-2xl font-bold text-gray-800">{editId ? 'Chỉnh sửa đề thi' : 'Soạn thảo đề thi mới'}</h2>
                     <button onClick={handleLogout} className="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 px-4 py-2 rounded font-medium text-sm transition cursor-pointer">Thoát</button>
                 </div>

@@ -10,3 +10,20 @@
 
 .reading-content p { margin-bottom: 1rem; line-height: 1.8; font-size: 1.05rem; color: #334155; }
 .reading-content h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: #0f172a; }
+
+/* ==========================================================
+   Chuyển động "float" cho các khối hình trang trí ở LandingScreen.jsx,
+   lấy nguyên bản từ classroom.html (mẫu thiết kế gốc).
+   ========================================================== */
+@keyframes ielts-float {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(2deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
+.animate-float { animation: ielts-float 4s ease-in-out infinite; }
+.animate-float-delayed { animation: ielts-float 5s ease-in-out 2s infinite; }
+
+/* Tôn trọng người dùng bật "giảm chuyển động" trong hệ điều hành/trình duyệt */
+@media (prefers-reduced-motion: reduce) {
+    .animate-float, .animate-float-delayed { animation: none; }
+}

@@ -302,7 +302,7 @@ const TestScreen = () => {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50 flex-col gap-3">
         <p className="text-lg text-rose-600 font-bold">Dữ liệu bài thi không khả dụng!</p>
-        <button onClick={() => navigate('/')} className="text-sm bg-indigo-600 text-white font-semibold px-4 py-2 rounded-xl hover:bg-indigo-700 transition">Quay lại trang chủ</button>
+        <button onClick={() => navigate('/tests')} className="text-sm bg-indigo-600 text-white font-semibold px-4 py-2 rounded-xl hover:bg-indigo-700 transition">Quay lại danh sách đề thi</button>
       </div>
     );
   }

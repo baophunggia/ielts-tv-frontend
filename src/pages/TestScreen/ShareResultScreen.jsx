@@ -103,7 +103,7 @@ const ShareResultScreen = () => {
                 <i className="fa-solid fa-link-slash text-6xl text-slate-300"></i>
                 <h2 className="text-2xl text-slate-800 font-bold">Liên kết không khả dụng</h2>
                 <p className="text-slate-500 max-w-md text-center">Phiếu kết quả này không tồn tại hoặc đã hết hạn lưu trữ sau 5 ngày theo quy định bảo mật hệ thống.</p>
-                <button onClick={() => navigate('/')} className="mt-2 text-sm bg-indigo-600 text-white font-semibold px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition">Về trang chủ</button>
+                <button onClick={() => navigate('/tests')} className="mt-2 text-sm bg-indigo-600 text-white font-semibold px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition">Xem danh sách đề thi</button>
             </div>
         );
     }
@@ -117,7 +117,7 @@ const ShareResultScreen = () => {
                         {testData.title} <span className="font-normal text-slate-400 text-sm ml-2">- Chế độ xem kết quả</span>
                     </h1>
                 </div>
-                <button onClick={() => navigate('/')} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                <button onClick={() => navigate('/tests')} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
                     Thoát
                 </button>
             </header>

@@ -21,7 +21,7 @@ class ErrorBoundary extends React.Component {
 
   handleReload = () => {
     this.setState({ hasError: false, error: null });
-    window.location.href = '/';
+    window.location.href = '/tests';
   };
 
   render() {
@@ -31,14 +31,14 @@ class ErrorBoundary extends React.Component {
           <i className="fa-solid fa-triangle-exclamation text-6xl text-amber-400"></i>
           <h2 className="text-2xl text-slate-800 font-bold">Đã có lỗi xảy ra khi hiển thị trang này</h2>
           <p className="text-slate-500 max-w-md">
-            Có thể dữ liệu bài thi bị thiếu hoặc lỗi định dạng. Vui lòng quay lại trang chủ.
+            Có thể dữ liệu bài thi bị thiếu hoặc lỗi định dạng. Vui lòng quay lại danh sách đề thi.
             Nếu bạn là giáo viên, hãy kiểm tra lại đề thi này trong trang Admin (có nhóm câu hỏi nào không có câu hỏi nào bên trong không).
           </p>
           <button
             onClick={this.handleReload}
             className="mt-2 text-sm bg-indigo-600 text-white font-semibold px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition"
           >
-            Về trang chủ
+            Về danh sách đề thi
           </button>
         </div>
       );

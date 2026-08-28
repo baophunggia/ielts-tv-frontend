@@ -20,9 +20,9 @@ const TestingHeader = React.memo(({
         <header className="bg-indigo-950 text-white px-5 py-3.5 shadow-md flex justify-between items-center shrink-0 z-30 border-b border-indigo-900 print:bg-white print:text-slate-900 print:border-b-2 print:border-slate-300">
             <div className="flex items-center gap-4 max-w-[60%]">
                 <button
-                    onClick={() => navigate('/')}
+                    onClick={() => navigate('/tests')}
                     className="text-indigo-300 hover:text-white transition-colors bg-white/5 p-2 rounded-xl print:hidden"
-                    title="Về trang chủ"
+                    title="Quay lại danh sách đề thi"
                 >
                     <i className="fa-solid fa-chevron-left text-base cursor-pointer"></i>
                 </button>
