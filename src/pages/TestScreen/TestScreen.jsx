@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import supabase from '../../supabaseClient';
+import { generateUUID } from '../../utils/uuid.js';
 import TestingHeader from './TestingHeader.jsx';
 import TestingBody from './TestingBody.jsx';
 
@@ -207,22 +208,28 @@ const TestScreen = () => {
       setIsSubmitted(true);
 
       // 3. LƯU KẾT QUẢ LÊN SUPABASE
-      const { data, error } = await supabase
+      // TÍNH NĂNG MỚI: Tự sinh sẵn id + link chia sẻ ở phía trình duyệt TRƯỚC khi
+      // insert, để lưu luôn cột share_link trong CÙNG 1 lượt gọi DB (không cần
+      // insert xong rồi update lại lần 2).
+      const resultId = generateUUID();
+      const shareLinkUrl = `${window.location.origin}/share-result/${resultId}`;
+
+      const { error } = await supabase
         .from('test_results')
         .insert([{
+          id: resultId,
           test_id: testData.id,
           student_answers: answers,
           score_correct: correctCount,
           score_total: totalCount,
-          time_taken: seconds
-        }])
-        .select('id')
-        .single();
+          time_taken: seconds,
+          share_link: shareLinkUrl
+        }]);
 
       if (error) throw error;
 
       // Tạo link share động
-      setShareLink(`${window.location.origin}/share-result/${data.id}`);
+      setShareLink(shareLinkUrl);
 
       // FIX BUG: Xoá bản nháp autosave sau khi nộp bài thành công, tránh việc
       // "Làm lại bài" hoặc mở lại đề vô tình nạp lại đáp án cũ đã nộp.

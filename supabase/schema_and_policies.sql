@@ -27,6 +27,14 @@ alter table public.test_results
     foreign key (test_id) references public.reading_tests(id)
     on delete cascade;
 
+-- ----------------------------------------------------------
+-- 0b. Thêm cột lưu link chia sẻ kết quả thi
+--     (Frontend tự sinh UUID + build link TRƯỚC khi insert, xem
+--     src/pages/TestScreen/TestScreen.jsx phần handleSubmitTest)
+-- ----------------------------------------------------------
+alter table public.test_results
+    add column if not exists share_link text;
+
 
 -- ----------------------------------------------------------
 -- 1. BẬT ROW LEVEL SECURITY
