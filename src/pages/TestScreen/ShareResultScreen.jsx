@@ -4,6 +4,8 @@ import supabase from '../../supabaseClient';
 import TestingHeader from './TestingHeader.jsx';
 import TestingBody from './TestingBody.jsx';
 
+import { BRAND_FONT } from '../../theme/brand.js';
+
 const ShareResultScreen = () => {
     const { resultId } = useParams();
     const navigate = useNavigate();
@@ -88,9 +90,9 @@ const ShareResultScreen = () => {
 
     if (loading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50">
+            <div className="flex h-screen items-center justify-center bg-[#fff8e1]" style={BRAND_FONT}>
                 <div className="flex flex-col items-center">
-                    <i className="fa-solid fa-spinner fa-spin text-4xl text-indigo-600 mb-4"></i>
+                    <i className="fa-solid fa-spinner fa-spin text-4xl text-[#1e40a1] mb-4"></i>
                     <p className="text-sm text-slate-500 font-semibold tracking-wide">Đang tải phiếu kết quả...</p>
                 </div>
             </div>
@@ -99,22 +101,22 @@ const ShareResultScreen = () => {
 
     if (isExpired) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 flex-col gap-4">
+            <div className="flex h-screen items-center justify-center bg-[#fff8e1] flex-col gap-4" style={BRAND_FONT}>
                 <i className="fa-solid fa-link-slash text-6xl text-slate-300"></i>
                 <h2 className="text-2xl text-slate-800 font-bold">Liên kết không khả dụng</h2>
                 <p className="text-slate-500 max-w-md text-center">Phiếu kết quả này không tồn tại hoặc đã hết hạn lưu trữ sau 5 ngày theo quy định bảo mật hệ thống.</p>
-                <button onClick={() => navigate('/tests')} className="mt-2 text-sm bg-indigo-600 text-white font-semibold px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition">Xem danh sách đề thi</button>
+                <button onClick={() => navigate('/tests')} className="mt-2 text-sm bg-[#1e40a1] text-white font-bold px-6 py-2.5 rounded-full shadow-[3px_3px_0px_0px_#1a1b21] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all">Xem danh sách đề thi</button>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col h-screen bg-slate-100 font-sans overflow-hidden antialiased">
-            <header className="bg-slate-900 text-white px-5 py-3.5 shadow-md flex justify-between items-center shrink-0 z-30 border-b border-slate-800">
+        <div className="flex flex-col h-screen bg-slate-100 overflow-hidden antialiased" style={BRAND_FONT}>
+            <header className="bg-[#36517e] text-white px-5 py-3.5 shadow-md flex justify-between items-center shrink-0 z-30 border-b border-[#2a4365]">
                 <div className="flex items-center gap-4">
-                    <h1 className="text-lg font-black tracking-tight text-slate-100 flex items-center gap-2">
-                        <i className="fa-solid fa-eye text-emerald-400"></i>
-                        {testData.title} <span className="font-normal text-slate-400 text-sm ml-2">- Chế độ xem kết quả</span>
+                    <h1 className="text-lg font-extrabold tracking-tight text-slate-100 flex items-center gap-2">
+                        <i className="fa-solid fa-eye text-[#ffca28]"></i>
+                        {testData.title} <span className="font-normal text-slate-300 text-sm ml-2">- Chế độ xem kết quả</span>
                     </h1>
                 </div>
                 <button onClick={() => navigate('/tests')} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">

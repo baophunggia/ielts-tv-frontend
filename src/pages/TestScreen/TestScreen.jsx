@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import supabase from '../../supabaseClient';
 import { generateUUID } from '../../utils/uuid.js';
+import { BRAND_FONT } from '../../theme/brand.js';
 import TestingHeader from './TestingHeader.jsx';
 import TestingBody from './TestingBody.jsx';
 
@@ -282,16 +283,16 @@ const TestScreen = () => {
     const el = document.getElementById(`q-${displayNum}`);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('ring-2', 'ring-indigo-500', 'ring-offset-2');
-      setTimeout(() => el.classList.remove('ring-2', 'ring-indigo-500', 'ring-offset-2'), 2000);
+      el.classList.add('ring-2', 'ring-[#1e40a1]', 'ring-offset-2');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-[#1e40a1]', 'ring-offset-2'), 2000);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
+      <div className="flex h-screen items-center justify-center bg-[#fff8e1]" style={BRAND_FONT}>
         <div className="flex flex-col items-center">
-          <i className="fa-solid fa-spinner fa-spin text-4xl text-indigo-600 mb-4"></i>
+          <i className="fa-solid fa-spinner fa-spin text-4xl text-[#1e40a1] mb-4"></i>
           <p className="text-sm text-slate-500 font-semibold tracking-wide">Đang đồng bộ phòng thi ảo...</p>
         </div>
       </div>
@@ -300,9 +301,9 @@ const TestScreen = () => {
 
   if (!testData) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 flex-col gap-3">
+      <div className="flex h-screen items-center justify-center bg-[#fff8e1] flex-col gap-3" style={BRAND_FONT}>
         <p className="text-lg text-rose-600 font-bold">Dữ liệu bài thi không khả dụng!</p>
-        <button onClick={() => navigate('/tests')} className="text-sm bg-indigo-600 text-white font-semibold px-4 py-2 rounded-xl hover:bg-indigo-700 transition">Quay lại danh sách đề thi</button>
+        <button onClick={() => navigate('/tests')} className="text-sm bg-[#1e40a1] text-white font-bold px-5 py-2.5 rounded-full shadow-[3px_3px_0px_0px_#1a1b21] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all">Quay lại danh sách đề thi</button>
       </div>
     );
   }
@@ -344,7 +345,7 @@ const TestScreen = () => {
   const isAllAnswered = totalCount > 0 && answeredCount === totalCount;
 
   return (
-    <div className="flex flex-col h-screen bg-slate-100 font-sans overflow-hidden antialiased">
+    <div className="flex flex-col h-screen bg-slate-100 overflow-hidden antialiased" style={BRAND_FONT}>
       <TestingHeader
         testData={testData}
         isSubmitted={isSubmitted}

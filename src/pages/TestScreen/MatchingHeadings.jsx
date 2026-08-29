@@ -3,15 +3,15 @@
 // ==========================================
 const MatchingHeadings = ({ group, answers, onAnswerChange, isSubmitted }) => (
     <div id={`group-${group.id}`} className="mb-8 p-6 bg-white rounded-2xl shadow-sm border border-slate-200/80 transition-all">
-        <h3 className="font-bold text-lg mb-1 text-indigo-900 flex items-center gap-2">
-            <span className="bg-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-md uppercase font-bold tracking-wider">Headings</span>
+        <h3 className="font-bold text-lg mb-1 text-[#2a4365] flex items-center gap-2">
+            <span className="bg-[#dbe4fb] text-[#1e40a1] text-xs px-2.5 py-1 rounded-md uppercase font-bold tracking-wider">Headings</span>
             Questions {group.questions[0].displayNumber} - {group.questions[group.questions.length - 1].displayNumber}
         </h3>
         <p className="text-xs text-slate-400 italic mb-4">{group.instruction}</p>
 
         <div className="bg-slate-50 p-4 rounded-xl mb-5 border border-slate-200/60 shadow-inner">
             <p className="font-bold text-sm text-slate-700 mb-3 flex items-center gap-1.5">
-                <i className="fa-solid fa-list-ol text-xs text-indigo-500"></i> List of Headings
+                <i className="fa-solid fa-list-ol text-xs text-[#1e40a1]"></i> List of Headings
             </p>
             <ul className="space-y-2">
                 {group.options?.map((opt, idx) => (
@@ -36,7 +36,7 @@ const MatchingHeadings = ({ group, answers, onAnswerChange, isSubmitted }) => (
                                 onChange={(e) => onAnswerChange(q.id, e.target.value)}
                                 className={`border rounded-lg px-3 py-2 w-28 focus:outline-none uppercase text-center font-bold text-base transition-all ${isSubmitted
                                     ? (isCorrect ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm shadow-emerald-100' : 'bg-rose-50 border-rose-500 text-rose-700 shadow-sm shadow-rose-100')
-                                    : 'border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white'
+                                    : 'border-slate-300 focus:ring-2 focus:ring-[#1e40a1]/60 focus:border-[#1e40a1] bg-white'
                                     }`}
                                 placeholder="..."
                             />

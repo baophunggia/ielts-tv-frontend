@@ -54,7 +54,7 @@ const TestingBody = React.memo(({
         {/* ĐƯỜNG KÉO BAR - ẨN KHI XUẤT PDF */}
         <div
             className={`w-1.5 h-full cursor-col-resize shrink-0 transition-colors z-20 relative flex items-center justify-center print:hidden ${
-                isResizing ? 'bg-indigo-600' : 'bg-slate-300 hover:bg-indigo-400'
+                isResizing ? 'bg-[#1e40a1]' : 'bg-slate-300 hover:bg-[#1e40a1]/60'
             }`}
             onMouseDown={startResizing}
         >
@@ -92,7 +92,7 @@ const TestingBody = React.memo(({
                 )}
 
                 <h2 className="text-xl font-black text-slate-800 mb-6 tracking-tight flex items-center gap-2 print:text-slate-900">
-                    <i className="fa-solid fa-file-signature text-indigo-500 print:hidden"></i> Phiếu trả lời chi tiết
+                    <i className="fa-solid fa-file-signature text-[#1e40a1] print:hidden"></i> Phiếu trả lời chi tiết
                 </h2>
 
                 <TestingBodyRenderQuestion
@@ -126,7 +126,7 @@ const TestingBody = React.memo(({
                                     className={`h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${isSubmitted
                                         ? 'border border-slate-200 bg-slate-50 text-slate-600'
                                         : hasAnswer
-                                            ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-100'
+                                            ? 'bg-[#1e40a1] text-white shadow-sm shadow-[#1e40a1]/20'
                                             : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                                     }`}
                                 >
@@ -139,7 +139,7 @@ const TestingBody = React.memo(({
 
                 <div className="pt-3 border-t border-slate-100 space-y-2">
                     <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500">
-                        <span className="w-3 h-3 bg-indigo-600 rounded-md"></span>
+                        <span className="w-3 h-3 bg-[#1e40a1] rounded-md"></span>
                         <span>Đã trả lời</span>
                     </div>
                     <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500">

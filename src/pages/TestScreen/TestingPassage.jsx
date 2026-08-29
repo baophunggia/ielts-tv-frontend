@@ -87,7 +87,7 @@ const TestingPassage = React.memo(forwardRef(({ passageHtml, disabled = false, o
 
     return (
         <div
-            className={`flex-1 overflow-y-auto pl-10 pr-12 py-10 text-left leading-relaxed text-slate-700 reading-content selection:bg-indigo-100 ${disabled ? '' : 'select-text'}`}
+            className={`flex-1 overflow-y-auto pl-10 pr-12 py-10 text-left leading-relaxed text-slate-700 reading-content selection:bg-[#dbe4fb] ${disabled ? '' : 'select-text'}`}
             ref={passageRef}
             onMouseUp={handleMouseUpHighlight}
             style={{ fontSize: '15px', wordSpacing: '0.5px' }}

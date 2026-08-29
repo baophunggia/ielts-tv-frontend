@@ -19,7 +19,7 @@ const MultipleChoiceMulti = ({ group, answers, onAnswerChange, isSubmitted }) =>
 
   return (
     <div id={`group-${group.id}`} className="mb-8 p-6 bg-white rounded-2xl shadow-sm border border-slate-200/80">
-      <h3 className="font-bold text-lg mb-2 text-indigo-900 flex items-center gap-2">
+      <h3 className="font-bold text-lg mb-2 text-[#2a4365] flex items-center gap-2">
         <span className="bg-amber-100 text-amber-700 text-xs px-2.5 py-1 rounded-md uppercase font-bold tracking-wider">Multiple Choice (Multiple)</span>
       </h3>
       <p className="text-sm text-slate-500 font-medium italic mb-5">
@@ -34,7 +34,7 @@ const MultipleChoiceMulti = ({ group, answers, onAnswerChange, isSubmitted }) =>
           return (
             <div key={q.id} id={`q-${q.displayNumber}`} className="p-4 rounded-xl bg-slate-50/50 border border-slate-100">
               <p className="font-bold text-slate-800 text-sm flex items-start mb-4">
-                <span className="font-black text-indigo-600 mr-2 bg-indigo-50 px-2 py-0.5 rounded-md text-xs">{q.displayNumber}</span>
+                <span className="font-black text-[#1e40a1] mr-2 bg-[#eef2fc] px-2 py-0.5 rounded-md text-xs">{q.displayNumber}</span>
                 {q.text}
               </p>
               
@@ -46,7 +46,7 @@ const MultipleChoiceMulti = ({ group, answers, onAnswerChange, isSubmitted }) =>
                   
                   // Style logic hiển thị đúng / sai
                   let boxStyle = "bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
-                  if (isChecked && !isSubmitted) boxStyle = "bg-indigo-50 border-indigo-400 text-indigo-900 ring-1 ring-indigo-400";
+                  if (isChecked && !isSubmitted) boxStyle = "bg-[#eef2fc] border-[#1e40a1]/60 text-[#2a4365] ring-1 ring-[#1e40a1]/60";
                   if (isSubmitted) {
                     if (isChecked && isThisCorrectKey) boxStyle = "bg-emerald-50 border-emerald-400 text-emerald-800 ring-1 ring-emerald-400"; // Chọn trúng đáp án
                     if (isChecked && !isThisCorrectKey) boxStyle = "bg-rose-50 border-rose-400 text-rose-800 ring-1 ring-rose-400"; // Chọn sai
@@ -59,7 +59,7 @@ const MultipleChoiceMulti = ({ group, answers, onAnswerChange, isSubmitted }) =>
                       onClick={() => handleToggleOption(q.id, letter, group.requiredSelectCount || 2)}
                       className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${boxStyle} ${isSubmitted ? 'pointer-events-none' : ''}`}
                     >
-                      <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-slate-300'}`}>
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#1e40a1] border-[#1e40a1]' : 'bg-white border-slate-300'}`}>
                         {isChecked && <i className="fa-solid fa-check text-white text-xs"></i>}
                       </div>
                       <span className="text-sm font-medium">{opt}</span>

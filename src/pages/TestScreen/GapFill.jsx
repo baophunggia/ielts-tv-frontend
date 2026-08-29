@@ -3,7 +3,7 @@
 // ==========================================
 const GapFill = ({ group, answers, onAnswerChange, isSubmitted }) => (
   <div id={`group-${group.id}`} className="mb-8 p-6 bg-white rounded-2xl shadow-sm border border-slate-200/80">
-    <h3 className="font-bold text-lg mb-1 text-indigo-900 flex items-center gap-2">
+    <h3 className="font-bold text-lg mb-1 text-[#2a4365] flex items-center gap-2">
       <span className="bg-purple-100 text-purple-700 text-xs px-2.5 py-1 rounded-md uppercase font-bold tracking-wider">Gap Fill</span>
       Question {group.questions.length > 1 ? `${group.questions[0].displayNumber} - ${group.questions[group.questions.length - 1].displayNumber}` : group.questions[0].displayNumber}
     </h3>
@@ -16,7 +16,7 @@ const GapFill = ({ group, answers, onAnswerChange, isSubmitted }) => (
 
         return (
           <div key={q.id} id={`q-${q.displayNumber}`} className="text-slate-700 leading-relaxed text-sm flex flex-wrap items-center bg-slate-50/50 p-4 rounded-xl border border-slate-100/70">
-            <span className="font-black text-indigo-600 mr-2 bg-indigo-50 px-2 py-0.5 rounded-md text-xs">{q.displayNumber}</span>
+            <span className="font-black text-[#1e40a1] mr-2 bg-[#eef2fc] px-2 py-0.5 rounded-md text-xs">{q.displayNumber}</span>
             <span>{parts[0]}</span>
 
             <input
@@ -26,7 +26,7 @@ const GapFill = ({ group, answers, onAnswerChange, isSubmitted }) => (
               onChange={(e) => onAnswerChange(q.id, e.target.value)}
               className={`border-b-2 mx-2 w-40 px-2 focus:outline-none bg-transparent text-center font-bold text-sm transition-all py-0.5 ${isSubmitted
                 ? (isCorrect ? 'border-emerald-500 text-emerald-600 bg-emerald-50/50 rounded' : 'border-rose-500 text-rose-600 bg-rose-50/50 rounded')
-                : 'border-slate-300 focus:border-indigo-600 text-indigo-900 font-semibold'
+                : 'border-slate-300 focus:border-[#1e40a1] text-[#2a4365] font-semibold'
                 }`}
               placeholder="Nhập đáp án..."
             />

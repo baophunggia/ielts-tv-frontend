@@ -3,7 +3,7 @@ import React from 'react';
 const MatchingInformation = ({ group, answers, onAnswerChange, isSubmitted }) => {
   return (
     <div id={`group-${group.id}`} className="mb-8 p-6 bg-white rounded-2xl shadow-sm border border-slate-200/80">
-      <h3 className="font-bold text-lg mb-2 text-indigo-900 flex items-center gap-2">
+      <h3 className="font-bold text-lg mb-2 text-[#2a4365] flex items-center gap-2">
         <span className="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-md uppercase font-bold tracking-wider">Matching Information</span>
       </h3>
       <p className="text-sm text-slate-500 font-medium italic mb-3">{group.instruction}</p>
@@ -23,7 +23,7 @@ const MatchingInformation = ({ group, answers, onAnswerChange, isSubmitted }) =>
           return (
             <div key={q.id} id={`q-${q.displayNumber}`} className="flex flex-col sm:flex-row sm:items-start gap-4 p-4 rounded-xl bg-slate-50/50 border border-slate-100">
               <div className="flex items-center gap-3">
-                <span className="font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md text-sm">{q.displayNumber}</span>
+                <span className="font-black text-[#1e40a1] bg-[#eef2fc] px-2 py-0.5 rounded-md text-sm">{q.displayNumber}</span>
                 <input
                   type="text"
                   maxLength={1}
@@ -33,7 +33,7 @@ const MatchingInformation = ({ group, answers, onAnswerChange, isSubmitted }) =>
                   className={`w-12 h-10 text-center font-bold text-lg rounded-lg border-2 outline-none transition-all ${
                     isSubmitted
                       ? isCorrect ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-rose-50 border-rose-500 text-rose-700'
-                      : 'bg-white border-slate-300 focus:border-indigo-500 text-indigo-900'
+                      : 'bg-white border-slate-300 focus:border-[#1e40a1] text-[#2a4365]'
                   }`}
                   aria-label={`Đáp án câu ${q.displayNumber}: nhập chữ cái đoạn văn`}
                 />
