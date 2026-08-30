@@ -17,9 +17,26 @@ const ShareResultScreen = () => {
     const [score, setScore] = useState({ correct: 0, total: 0 });
     const [seconds, setSeconds] = useState(0);
     const [splitWidth, setSplitWidth] = useState(50);
+    // TÍNH NĂNG MỚI: tab mobile — trang xem kết quả cũng dùng chung TestingBody
+    // nên cần state này để layout mobile hoạt động nhất quán.
+    const [activeMobileTab, setActiveMobileTab] = useState('passage');
 
     // Thu thập danh sách ID câu hỏi để điều hướng
     const [allDisplayNumbers, setAllDisplayNumbers] = useState([]);
+
+    // Điều hướng nhanh đến câu hỏi — đồng bộ cách làm với TestScreen.jsx để
+    // thanh điều hướng mobile (bottom bar) hoạt động nhất quán ở cả 2 trang.
+    const scrollToQuestion = (displayNum) => {
+        setActiveMobileTab('questions');
+        requestAnimationFrame(() => {
+            const el = document.getElementById(`q-${displayNum}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.classList.add('ring-2', 'ring-[#1e40a1]', 'ring-offset-2');
+                setTimeout(() => el.classList.remove('ring-2', 'ring-[#1e40a1]', 'ring-offset-2'), 2000);
+            }
+        });
+    };
 
     useEffect(() => {
         if (resultId) fetchResultData(resultId);
@@ -133,6 +150,9 @@ const ShareResultScreen = () => {
                 isSubmitted={true} // Bật chế độ đã nộp bài (hiện đáp án xanh/đỏ)
                 seconds={seconds}
                 score={score}
+                activeMobileTab={activeMobileTab}
+                onChangeMobileTab={setActiveMobileTab}
+                onScrollToQuestion={scrollToQuestion}
                 allDisplayNumbers={allDisplayNumbers}
                 answers={answers}
                 disableHighlight={true} // FIX BUG: trước đây prop cũ (onHandleMouseUpHighlight) không có tác dụng gì, highlight vẫn hoạt động dù đây là trang chỉ-xem. Giờ khoá đúng cách.

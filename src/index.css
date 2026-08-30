@@ -11,6 +11,16 @@
 .reading-content p { margin-bottom: 1rem; line-height: 1.8; font-size: 1.05rem; color: #334155; }
 .reading-content h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: #0f172a; }
 
+/* Ẩn thanh cuộn ngang của thanh điều hướng câu hỏi dính đáy màn hình trên mobile,
+   để trông gọn gàng như 1 thanh app-bar thật thay vì có thanh cuộn browser mặc định. */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
 /* ==========================================================
    Chuyển động "float" cho các khối hình trang trí ở LandingScreen.jsx,
    lấy nguyên bản từ classroom.html (mẫu thiết kế gốc).

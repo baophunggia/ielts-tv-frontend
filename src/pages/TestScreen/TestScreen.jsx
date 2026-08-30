@@ -19,7 +19,11 @@ const TestScreen = () => {
   const passagePanelRef = useRef(null);
   const [highlightCount, setHighlightCount] = useState(0);
 
-  // State quản lý việc kéo thả chiều rộng màn hình (Resizable)
+  // TÍNH NĂNG MỚI: tab đang active trên mobile ('passage' | 'questions').
+  // Mặc định "passage" theo lựa chọn của bạn — học viên xem bài đọc trước.
+  const [activeMobileTab, setActiveMobileTab] = useState('passage');
+
+  // State quản lý việc kéo thả chiều rộng màn hình (Resizable, chỉ áp dụng desktop)
   const [splitWidth, setSplitWidth] = useState(50); // Tỉ lệ phần trăm (%) vùng bên trái bài đọc
   const [isResizing, setIsResizing] = useState(false);
 
@@ -279,13 +283,20 @@ const TestScreen = () => {
   }, [highlightCount]);
 
   // Điều hướng nhanh đến câu hỏi bên cột phải
+  // FIX MOBILE: panel câu hỏi bị ẩn (display:none) khi đang ở tab "Bài đọc" trên
+  // mobile, nên phải chuyển tab sang "questions" TRƯỚC, đợi 1 khung hình để trình
+  // duyệt render lại (từ hidden -> hiện) rồi mới scrollIntoView, nếu không toạ độ
+  // đo được sẽ là 0 (phần tử vẫn coi như chưa có kích thước).
   const scrollToQuestion = (displayNum) => {
-    const el = document.getElementById(`q-${displayNum}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('ring-2', 'ring-[#1e40a1]', 'ring-offset-2');
-      setTimeout(() => el.classList.remove('ring-2', 'ring-[#1e40a1]', 'ring-offset-2'), 2000);
-    }
+    setActiveMobileTab('questions');
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`q-${displayNum}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('ring-2', 'ring-[#1e40a1]', 'ring-offset-2');
+        setTimeout(() => el.classList.remove('ring-2', 'ring-[#1e40a1]', 'ring-offset-2'), 2000);
+      }
+    });
   };
 
   if (loading) {
@@ -366,6 +377,8 @@ const TestScreen = () => {
         isSubmitted={isSubmitted}
         seconds={seconds}
         score={score}
+        activeMobileTab={activeMobileTab}
+        onChangeMobileTab={setActiveMobileTab}
         allDisplayNumbers={allDisplayNumbers}
         answers={answers}
         onScrollToQuestion={scrollToQuestion}
