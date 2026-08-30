@@ -280,7 +280,9 @@ const LandingScreen = () => {
                         <div className="flex-1 relative flex justify-center items-center h-[340px] md:h-[500px] w-full">
                             {/* TÍNH NĂNG MỚI: khung ảnh tăng lên 380px (trước là 240px) để ảnh giáo viên
                                 trông rõ nét hơn — có breakpoint riêng cho mobile để tránh tràn màn hình nhỏ. */}
-                            <div className="absolute w-[300px] h-[300px] md:w-[440px] md:h-[440px] bg-[#9b7ebd] rounded-full z-0"></div>
+                            {/* TÍNH NĂNG MỚI: vòng tròn nền "thở" nhẹ (breathe) — thuần trang trí, phía
+                                sau ảnh, không xoay/không có chữ nên co giãn nhẹ không gây khó nhìn. */}
+                            <div className="absolute w-[300px] h-[300px] md:w-[440px] md:h-[440px] bg-[#9b7ebd] rounded-full z-0 animate-breathe"></div>
                             <div className="relative z-10 w-[260px] h-[260px] md:w-[380px] md:h-[380px] rounded-full overflow-hidden border-8 border-white shadow-lg">
                                 <img
                                     src={teacherPhoto}
@@ -291,8 +293,10 @@ const LandingScreen = () => {
 
                             {/* TÍNH NĂNG MỚI: Liên hệ hiển thị dạng 3 icon tròn thay vì text dài
                                 (tránh tràn chữ trong khối màu). Facebook -> mở link; Email/SĐT ->
-                                copy vào clipboard + popup xác nhận khi click. */}
-                            <div className="absolute -right-2 md:-right-6 bottom-2 md:bottom-6 z-20 bg-[#f48fb1] rounded-[28px] px-5 py-4 md:px-6 md:py-5 shadow-lg flex flex-col items-center gap-3">
+                                copy vào clipboard + popup xác nhận khi click.
+                                Dùng "sway" (trượt ngang nhẹ, KHÔNG xoay) vì khối này có chữ + nút bấm
+                                — xoay sẽ khó đọc/khó bấm chính xác, trượt ngang nhẹ vẫn giữ dễ tương tác. */}
+                            <div className="absolute -right-2 md:-right-6 bottom-2 md:bottom-6 z-20 bg-[#f48fb1] rounded-[28px] px-5 py-4 md:px-6 md:py-5 shadow-lg flex flex-col items-center gap-3 animate-sway">
                                 <h4 className="text-sm md:text-base font-extrabold text-[#2d3748]">Liên hệ</h4>
                                 <div className="flex items-center gap-3">
                                     <ContactIconButton mode="link" label="Facebook" href={CONTACT_INFO.facebookUrl} />
@@ -300,7 +304,9 @@ const LandingScreen = () => {
                                     <ContactIconButton mode="copy" icon="fa-phone" label="Điện thoại" value={CONTACT_INFO.phone} copiedField={copiedField} onCopy={handleCopyContact} />
                                 </div>
                             </div>
-                            <div className="absolute -left-2 md:-left-6 top-4 md:top-10 z-20 w-16 h-16 md:w-24 md:h-24 bg-[#4caf50] rounded-[40%_60%_70%_30%/40%_50%_60%_50%] flex items-center justify-center">
+                            {/* TÍNH NĂNG MỚI: blob thuần trang trí (chỉ có FaceDots, không chữ) -> dùng
+                                "wiggle" (lắc xoay nhẹ), tạo cảm giác như 1 nhân vật tinh nghịch. */}
+                            <div className="absolute -left-2 md:-left-6 top-4 md:top-10 z-20 w-16 h-16 md:w-24 md:h-24 bg-[#4caf50] rounded-[40%_60%_70%_30%/40%_50%_60%_50%] flex items-center justify-center animate-wiggle">
                                 <FaceDots className="scale-75" />
                             </div>
                         </div>
@@ -371,16 +377,20 @@ const LandingScreen = () => {
                         </div>
 
                         <div className="relative flex justify-center h-[380px] items-center">
-                            <div className="absolute w-[340px] h-[340px] bg-[#f48fb1] rounded-full flex flex-col justify-center items-center text-center p-10 shadow-md">
+                            {/* TÍNH NĂNG MỚI: vòng tròn có chữ -> dùng "breathe" (co giãn nhẹ, KHÔNG
+                                xoay) để giữ nội dung dễ đọc, khác kiểu "float" của Hero cho đa dạng. */}
+                            <div className="absolute w-[340px] h-[340px] bg-[#f48fb1] rounded-full flex flex-col justify-center items-center text-center p-10 shadow-md animate-breathe-delayed">
                                 <h3 className="text-2xl font-extrabold text-[#2d3748] mb-3">Mẹo làm bài</h3>
                                 <p className="text-sm text-[#2d3748] leading-relaxed">
                                     Đọc câu hỏi trước, bôi đen từ khoá trong bài đọc, và luôn theo dõi đồng hồ để phân bổ thời gian hợp lý.
                                 </p>
                             </div>
-                            <div className="absolute -top-6 left-4 w-24 h-24 bg-[#4caf50] rounded-[40%_60%_70%_30%/40%_50%_60%_50%] flex items-center justify-center">
+                            {/* 2 blob thuần trang trí (không chữ) -> mỗi blob 1 kiểu động khác nhau
+                                (wiggle vs float) để tổng thể trang không lặp lại 1 nhịp chuyển động duy nhất. */}
+                            <div className="absolute -top-6 left-4 w-24 h-24 bg-[#4caf50] rounded-[40%_60%_70%_30%/40%_50%_60%_50%] flex items-center justify-center animate-wiggle-delayed">
                                 <FaceDots />
                             </div>
-                            <div className="absolute -bottom-6 right-4 w-32 h-20 bg-[#ff9800] rounded-[30%_70%_70%_30%/30%_30%_70%_70%] flex items-center justify-center">
+                            <div className="absolute -bottom-6 right-4 w-32 h-20 bg-[#ff9800] rounded-[30%_70%_70%_30%/30%_30%_70%_70%] flex items-center justify-center animate-float">
                                 <FaceDots />
                             </div>
                         </div>

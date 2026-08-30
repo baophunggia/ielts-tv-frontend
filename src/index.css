@@ -33,7 +33,42 @@
 .animate-float { animation: ielts-float 4s ease-in-out infinite; }
 .animate-float-delayed { animation: ielts-float 5s ease-in-out 2s infinite; }
 
+/* TÍNH NĂNG MỚI: thêm 3 kiểu chuyển động KHÁC với "float" của Hero, dùng cho
+   section "Giáo viên phụ trách" và "Cách hoạt động" — để trang không lặp lại
+   1 kiểu động duy nhất, trông đa dạng và sống động hơn.
+   Lưu ý: các kiểu xoay (wiggle) chỉ dùng cho khối THUẦN TRANG TRÍ (không chữ),
+   tránh làm chữ bên trong bị xoay/khó đọc. Khối có chữ chỉ dùng "breathe" (co
+   giãn nhẹ, biên độ nhỏ) hoặc "sway" (trượt ngang nhẹ), không xoay. */
+
+/* Co giãn nhẹ nhàng như hơi thở — hợp cho vòng tròn nền phía sau ảnh/nội dung */
+@keyframes ielts-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+.animate-breathe { animation: ielts-breathe 4.5s ease-in-out infinite; }
+.animate-breathe-delayed { animation: ielts-breathe 4.5s ease-in-out 1.2s infinite; }
+
+/* Lắc lư xoay nhẹ qua lại — hợp cho các khối "nhân vật" nhỏ thuần trang trí */
+@keyframes ielts-wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-8deg); }
+    75% { transform: rotate(8deg); }
+}
+.animate-wiggle { animation: ielts-wiggle 3s ease-in-out infinite; }
+.animate-wiggle-delayed { animation: ielts-wiggle 3.4s ease-in-out 0.6s infinite; }
+
+/* Trượt ngang nhẹ nhàng — hợp cho thẻ có chữ/nút bấm (không xoay để giữ dễ đọc) */
+@keyframes ielts-sway {
+    0%, 100% { transform: translateX(0px); }
+    50% { transform: translateX(8px); }
+}
+.animate-sway { animation: ielts-sway 5s ease-in-out infinite; }
+.animate-sway-delayed { animation: ielts-sway 5.5s ease-in-out 1.5s infinite; }
+
 /* Tôn trọng người dùng bật "giảm chuyển động" trong hệ điều hành/trình duyệt */
 @media (prefers-reduced-motion: reduce) {
-    .animate-float, .animate-float-delayed { animation: none; }
+    .animate-float, .animate-float-delayed,
+    .animate-breathe, .animate-breathe-delayed,
+    .animate-wiggle, .animate-wiggle-delayed,
+    .animate-sway, .animate-sway-delayed { animation: none; }
 }
