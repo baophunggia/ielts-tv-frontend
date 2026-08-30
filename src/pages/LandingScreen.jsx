@@ -67,9 +67,9 @@ const MOCK_BLOG_POSTS = [
 // và thay email/phone bằng thông tin thật trước khi công khai trang.
 // ==========================================================
 const CONTACT_INFO = {
-    facebookUrl: 'https://facebook.com/your-profile-here', // <-- dán link Facebook thật vào đây
-    email: 'contact@ielts-tv.vn', // <-- thay email thật vào đây
-    phone: '0123 456 789', // <-- thay số điện thoại thật vào đây
+    facebookUrl: 'https://www.facebook.com/van.thuy.735',
+    email: 'huynhthithuvan1993@gmail.com',
+    phone: '0935 16 44 86',
 };
 
 // TÍNH NĂNG MỚI: nút icon tròn cho mục Liên hệ.
