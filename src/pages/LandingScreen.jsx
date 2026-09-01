@@ -12,7 +12,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import supabase from '../supabaseClient';
-import teacherPhoto from '../assets/tv_img.png';
+import teacherPhoto from '../assets/tv_img.jpg';
 import { BRAND_FONT } from '../theme/brand.js';
 import { fetchLatestPublishedBlogs } from '../services/blogPublicService.js';
 
@@ -45,9 +45,9 @@ const FaceDots = ({ className = '' }) => (
 // và thay email/phone bằng thông tin thật trước khi công khai trang.
 // ==========================================================
 const CONTACT_INFO = {
-    facebookUrl: 'https://facebook.com/your-profile-here', // <-- dán link Facebook thật vào đây
-    email: 'contact@ielts-tv.vn', // <-- thay email thật vào đây
-    phone: '0123 456 789', // <-- thay số điện thoại thật vào đây
+    facebookUrl: 'https://www.facebook.com/van.thuy.735',
+    email: 'huynhthithuvan1993@gmail.com',
+    phone: '0935 16 44 86',
 };
 
 // TÍNH NĂNG MỚI: nút icon tròn cho mục Liên hệ.
@@ -234,13 +234,40 @@ const LandingScreen = () => {
                                 Giáo viên<br />phụ trách
                             </h2>
                             <h3 className="text-2xl font-extrabold text-[#1e40a1]">Mrs.Thu Vân</h3>
-                            <div className="text-base text-[#4a5568] max-w-md space-y-3">
-                                <p>Giới thiệu ngắn gọn về giáo viên phụ trách nội dung các đề thi trên IELTS-TV, ví dụ:</p>
-                                <ul className="list-disc pl-6 space-y-1.5">
-                                    <li>Trình độ chuyên môn (bằng cấp, chứng chỉ IELTS/TESOL...)</li>
-                                    <li>Số năm kinh nghiệm giảng dạy / luyện thi IELTS</li>
-                                    <li>Thành tích nổi bật (band điểm học viên đạt được, số lượng học viên...)</li>
-                                </ul>
+                            <div className="text-base text-[#4a5568] max-w-md space-y-4 leading-relaxed">
+                                <p>
+                                    Xin chào 👋
+                                    <br />
+                                    Mình là <strong className="text-[#2d3748]">Thu Vân</strong>, giáo viên phụ trách
+                                    nội dung và biên soạn đề thi IELTS tại <strong className="text-[#2d3748]">IELTS-TV</strong>.
+                                </p>
+
+                                <p>
+                                    Mình đã <strong className="text-[#2d3748]">2 lần trực tiếp tham dự kỳ thi IELTS
+                                        và đạt band 7.5</strong>. Qua quá trình ôn luyện và trải nghiệm kỳ thi thực tế,
+                                    mình hiểu những khó khăn mà người học thường gặp, từ việc làm quen với cấu trúc
+                                    đề, quản lý thời gian cho đến cách cải thiện từng kỹ năng để đạt band điểm mong muốn.
+                                </p>
+
+                                <p>
+                                    Hiện tại, mình đang theo học <strong className="text-[#2d3748]">
+                                        văn bằng 2 tại Trường Đại học Ngoại ngữ – Đại học Huế</strong>, với mong muốn
+                                    tiếp tục trau dồi kiến thức và nâng cao chuyên môn.
+                                </p>
+
+                                <p>
+                                    Mình xây dựng <strong className="text-[#2d3748]">IELTS-TV</strong> với mong muốn
+                                    mang đến những đề luyện IELTS chất lượng, bám sát cấu trúc bài thi và dễ tiếp cận,
+                                    giúp bạn có thêm một công cụ hữu ích để luyện tập và tự đánh giá năng lực của mình.
+                                </p>
+
+                                <p>
+                                    Mình tin rằng <strong className="text-[#2d3748]">
+                                        luyện IELTS hiệu quả không nhất thiết phải thật phức tạp</strong> — quan trọng là
+                                    có tài liệu phù hợp, luyện tập đúng cách và kiên trì từng bước.
+                                    Hy vọng IELTS-TV sẽ có thể đồng hành cùng bạn trên hành trình chinh phục
+                                    mục tiêu IELTS của mình. ❤️
+                                </p>
                             </div>
                         </div>
 
