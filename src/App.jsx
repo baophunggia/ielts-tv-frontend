@@ -3,6 +3,8 @@ import LandingScreen from './pages/LandingScreen.jsx';
 import TestsScreen from './pages/TestsScreen.jsx';
 import TestScreen from './pages/TestScreen/TestScreen.jsx';
 import ShareResultScreen from './pages/TestScreen/ShareResultScreen.jsx';
+import BlogListScreen from './pages/BlogListScreen.jsx';
+import BlogDetailScreen from './pages/BlogDetailScreen.jsx';
 import AdminLayout from './pages/Admin/AdminLayout.jsx';
 import AdminTestsTab from './pages/Admin/AdminTestsTab.jsx';
 import AdminTestForm from './pages/Admin/AdminTestForm.jsx';
@@ -29,6 +31,8 @@ export default function App() {
           <Route path="/tests" element={<TestsScreen />} />
           <Route path="/test/:id" element={<TestScreen />} />
           <Route path="/share-result/:resultId" element={<ShareResultScreen />} />
+          <Route path="/blogs" element={<BlogListScreen />} />
+          <Route path="/blogs/:slug" element={<BlogDetailScreen />} />
 
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminTestsTab />} />

@@ -12,8 +12,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import supabase from '../supabaseClient';
-import teacherPhoto from '../assets/tv_img.jpg';
+import teacherPhoto from '../assets/tv_img.png';
 import { BRAND_FONT } from '../theme/brand.js';
+import { fetchLatestPublishedBlogs } from '../services/blogPublicService.js';
 
 const LEVEL_LABEL = {
     '45': 'Band 4.0 - 5.0',
@@ -21,6 +22,9 @@ const LEVEL_LABEL = {
     '78': 'Band 7.0 - 8.0',
     '89': 'Band 8.0 - 9.0',
 };
+
+// Bảng màu xoay vòng cho card bài viết ở mục Class News (giữ đúng phong cách brand)
+const NEWS_CARD_COLORS = ['bg-[#ff9800]', 'bg-[#4caf50]', 'bg-[#2a4365]'];
 
 // Icon "mặt cười" tối giản tái hiện tinh thần các khối "nhân vật" trong classroom.html,
 // dùng SVG nội tuyến (không phụ thuộc ảnh ngoài) để giữ trang nhẹ và luôn hiển thị đúng.
@@ -35,41 +39,15 @@ const FaceDots = ({ className = '' }) => (
     </div>
 );
 
-// TÍNH NĂNG MỚI (MOCKUP): dữ liệu tạm cho mục "Class News" bên dưới.
-// TODO(blog-feature): khi triển khai đầy đủ tính năng viết blog, thay mảng
-// tĩnh này bằng dữ liệu fetch từ bảng "blog_posts" trên Supabase (tương tự
-// cách "previewTests" đang fetch từ bảng "reading_tests"), ví dụ:
-//   supabase.from('blog_posts').select('id, title, excerpt, cover_color').order('created_at', { ascending: false }).limit(3)
-const MOCK_BLOG_POSTS = [
-    {
-        title: '5 mẹo làm dạng Matching Headings hiệu quả',
-        excerpt: 'Chia sẻ cách đọc lướt (skimming) để xác định ý chính từng đoạn văn nhanh hơn, tránh mất thời gian đọc lại toàn bộ bài.',
-        bg: 'bg-[#ff9800]',
-        icon: 'fa-list-check',
-    },
-    {
-        title: 'Quản lý 60 phút thi Reading sao cho đủ',
-        excerpt: 'Gợi ý cách phân bổ thời gian hợp lý cho 3 passage, và khi nào nên tạm bỏ qua 1 câu khó để quay lại sau.',
-        bg: 'bg-[#4caf50]',
-        icon: 'fa-clock',
-    },
-    {
-        title: 'Phân biệt True / False / Not Given',
-        excerpt: 'Điểm khác nhau cốt lõi giữa "False" và "Not Given" — lỗi sai phổ biến nhất khiến học viên mất điểm oan.',
-        bg: 'bg-[#2a4365]',
-        icon: 'fa-circle-question',
-    },
-];
-
 // ==========================================================
 // THÔNG TIN LIÊN HỆ CỦA GIÁO VIÊN
 // TODO: Dán link Facebook cá nhân thật của Thu Vân vào facebookUrl bên dưới,
 // và thay email/phone bằng thông tin thật trước khi công khai trang.
 // ==========================================================
 const CONTACT_INFO = {
-    facebookUrl: 'https://www.facebook.com/van.thuy.735',
-    email: 'huynhthithuvan1993@gmail.com',
-    phone: '0935 16 44 86',
+    facebookUrl: 'https://facebook.com/your-profile-here', // <-- dán link Facebook thật vào đây
+    email: 'contact@ielts-tv.vn', // <-- thay email thật vào đây
+    phone: '0123 456 789', // <-- thay số điện thoại thật vào đây
 };
 
 // TÍNH NĂNG MỚI: nút icon tròn cho mục Liên hệ.
@@ -118,6 +96,10 @@ const LandingScreen = () => {
     const [loadingPreview, setLoadingPreview] = useState(true);
     const [copiedField, setCopiedField] = useState(null);
 
+    // TÍNH NĂNG MỚI (PHASE 2): 3 bài blog mới nhất cho mục "Class News"
+    const [previewPosts, setPreviewPosts] = useState([]);
+    const [loadingPosts, setLoadingPosts] = useState(true);
+
     useEffect(() => {
         const fetchPreview = async () => {
             try {
@@ -137,6 +119,18 @@ const LandingScreen = () => {
             }
         };
         fetchPreview();
+
+        const fetchPosts = async () => {
+            try {
+                const data = await fetchLatestPublishedBlogs(3);
+                setPreviewPosts(data);
+            } catch (err) {
+                console.error('Không tải được bài viết blog xem trước:', err);
+            } finally {
+                setLoadingPosts(false);
+            }
+        };
+        fetchPosts();
     }, []);
 
     const scrollTo = (id) => (e) => {
@@ -240,40 +234,13 @@ const LandingScreen = () => {
                                 Giáo viên<br />phụ trách
                             </h2>
                             <h3 className="text-2xl font-extrabold text-[#1e40a1]">Mrs.Thu Vân</h3>
-                            <div className="text-base text-[#4a5568] max-w-md space-y-4 leading-relaxed">
-                                <p>
-                                    Xin chào 👋
-                                    <br />
-                                    Mình là <strong className="text-[#2d3748]">Thu Vân</strong>, giáo viên phụ trách
-                                    nội dung và biên soạn đề thi IELTS tại <strong className="text-[#2d3748]">IELTS-TV</strong>.
-                                </p>
-
-                                <p>
-                                    Mình đã <strong className="text-[#2d3748]">2 lần trực tiếp tham dự kỳ thi IELTS
-                                        và đạt band 7.5</strong>. Qua quá trình ôn luyện và trải nghiệm kỳ thi thực tế,
-                                    mình hiểu những khó khăn mà người học thường gặp, từ việc làm quen với cấu trúc
-                                    đề, quản lý thời gian cho đến cách cải thiện từng kỹ năng để đạt band điểm mong muốn.
-                                </p>
-
-                                <p>
-                                    Hiện tại, mình đang theo học <strong className="text-[#2d3748]">
-                                        văn bằng 2 tại Trường Đại học Ngoại ngữ – Đại học Huế</strong>, với mong muốn
-                                    tiếp tục trau dồi kiến thức và nâng cao chuyên môn.
-                                </p>
-
-                                <p>
-                                    Mình xây dựng <strong className="text-[#2d3748]">IELTS-TV</strong> với mong muốn
-                                    mang đến những đề luyện IELTS chất lượng, bám sát cấu trúc bài thi và dễ tiếp cận,
-                                    giúp bạn có thêm một công cụ hữu ích để luyện tập và tự đánh giá năng lực của mình.
-                                </p>
-
-                                <p>
-                                    Mình tin rằng <strong className="text-[#2d3748]">
-                                        luyện IELTS hiệu quả không nhất thiết phải thật phức tạp</strong> — quan trọng là
-                                    có tài liệu phù hợp, luyện tập đúng cách và kiên trì từng bước.
-                                    Hy vọng IELTS-TV sẽ có thể đồng hành cùng bạn trên hành trình chinh phục
-                                    mục tiêu IELTS của mình. ❤️
-                                </p>
+                            <div className="text-base text-[#4a5568] max-w-md space-y-3">
+                                <p>Giới thiệu ngắn gọn về giáo viên phụ trách nội dung các đề thi trên IELTS-TV, ví dụ:</p>
+                                <ul className="list-disc pl-6 space-y-1.5">
+                                    <li>Trình độ chuyên môn (bằng cấp, chứng chỉ IELTS/TESOL...)</li>
+                                    <li>Số năm kinh nghiệm giảng dạy / luyện thi IELTS</li>
+                                    <li>Thành tích nổi bật (band điểm học viên đạt được, số lượng học viên...)</li>
+                                </ul>
                             </div>
                         </div>
 
@@ -397,9 +364,10 @@ const LandingScreen = () => {
                     </div>
                 </section>
 
-                {/* ============ 4b. CLASS NEWS (Blog — hiện là mockup) ============ */}
-                {/* TÍNH NĂNG MỚI (MOCKUP): hiển thị bài viết mẫu, CHƯA kết nối dữ liệu
-                    thật. Xem ghi chú TODO(blog-feature) ở đầu file khi triển khai đầy đủ. */}
+                {/* ============ 4b. CLASS NEWS — Ghép nối dữ liệu blog thật (PHASE 2) ============ */}
+                {/* TÍNH NĂNG MỚI: hiển thị 3 bài viết mới nhất đã publish, click vào mở
+                    thẳng trang chi tiết (/blogs/:slug). Nút "Xem tất cả bài viết" dẫn sang
+                    trang danh sách đầy đủ (/blogs) — cùng pattern với mục Resources bên dưới. */}
                 <section id="news" className="bg-[#ffca28] py-20 scroll-mt-20">
                     <div className="max-w-7xl mx-auto px-6 space-y-10">
                         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -407,20 +375,46 @@ const LandingScreen = () => {
                                 Class News
                             </h2>
                             <p className="text-[#2d3748]/80 text-sm max-w-md pb-1 font-medium">
-                                Bài viết minh hoạ — tính năng viết &amp; đăng blog đầy đủ sẽ được triển khai sau.
+                                Chia sẻ kinh nghiệm, mẹo làm bài và tin tức mới nhất từ IELTS-TV.
                             </p>
                         </div>
 
-                        <div className="grid md:grid-cols-3 gap-6">
-                            {MOCK_BLOG_POSTS.map((post) => (
-                                <div key={post.title} className={`${post.bg} rounded-[32px] p-8 flex flex-col h-full shadow-lg`}>
-                                    <div className="w-14 h-14 rounded-full bg-white/15 flex items-center justify-center mb-6">
-                                        <i className={`fa-solid ${post.icon} text-2xl text-white`}></i>
-                                    </div>
-                                    <h3 className="text-xl font-bold text-white mb-3">{post.title}</h3>
-                                    <p className="text-sm text-white/80 leading-relaxed">{post.excerpt}</p>
-                                </div>
-                            ))}
+                        {loadingPosts ? (
+                            <div className="grid md:grid-cols-3 gap-6">
+                                {[1, 2, 3].map((n) => <div key={n} className="bg-white/20 rounded-[32px] h-64 animate-pulse"></div>)}
+                            </div>
+                        ) : previewPosts.length === 0 ? (
+                            <div className="bg-white/20 rounded-[32px] p-10 text-center text-[#2d3748]/70 font-medium">
+                                Chưa có bài viết nào được đăng. Quay lại sau nhé!
+                            </div>
+                        ) : (
+                            <div className="grid md:grid-cols-3 gap-6">
+                                {previewPosts.map((post, idx) => (
+                                    <Link
+                                        key={post.id}
+                                        to={`/blogs/${post.slug}`}
+                                        className={`${NEWS_CARD_COLORS[idx % NEWS_CARD_COLORS.length]} rounded-[32px] p-8 flex flex-col h-full shadow-lg hover:-translate-y-1.5 hover:shadow-xl transition-all duration-200`}
+                                    >
+                                        {post.categories?.name && (
+                                            <span className="inline-block w-fit text-[11px] font-bold uppercase tracking-wide bg-white/20 text-white px-2.5 py-1 rounded-md mb-4">
+                                                {post.categories.name}
+                                            </span>
+                                        )}
+                                        <h3 className="text-xl font-bold text-white mb-3 line-clamp-2">{post.title}</h3>
+                                        <p className="text-sm text-white/80 leading-relaxed line-clamp-3 flex-1">{post.excerpt}</p>
+                                        <span className="text-white text-sm font-bold underline decoration-2 underline-offset-4 mt-4">Đọc tiếp →</span>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="flex justify-center pt-2">
+                            <Link
+                                to="/blogs"
+                                className="bg-[#2d3748] text-white font-extrabold text-base py-4 px-10 rounded-[20px] shadow-[6px_6px_0px_0px_rgba(0,0,0,0.25)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,0.25)] active:translate-y-1 active:shadow-none transition-all"
+                            >
+                                Xem tất cả bài viết <i className="fa-solid fa-arrow-right ml-1"></i>
+                            </Link>
                         </div>
                     </div>
                 </section>
@@ -484,6 +478,7 @@ const LandingScreen = () => {
                     <div className="flex flex-wrap justify-center gap-6">
                         <Link to="/" className="text-[#b6c4ff]/80 hover:text-[#ffca28] font-bold text-sm transition-colors">Trang chủ</Link>
                         <Link to="/tests" className="text-[#b6c4ff]/80 hover:text-[#ffca28] font-bold text-sm transition-colors">Danh sách đề thi</Link>
+                        <Link to="/blogs" className="text-[#b6c4ff]/80 hover:text-[#ffca28] font-bold text-sm transition-colors">Blog</Link>
                         <Link to="/admin" className="text-[#b6c4ff]/80 hover:text-[#ffca28] font-bold text-sm transition-colors">Admin Portal</Link>
                     </div>
                     <div className="text-white/50 text-sm">© {new Date().getFullYear()} IELTS-TV</div>
