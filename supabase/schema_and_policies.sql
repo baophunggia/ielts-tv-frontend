@@ -307,3 +307,38 @@ using (bucket_id = 'blog-images');
 -- select tablename, policyname, cmd, roles from pg_policies
 -- where schemaname = 'public' and tablename in ('categories','tags','blogs','blog_tags')
 -- order by tablename, cmd;
+
+
+-- ==========================================================
+-- 9. NEWSLETTER SUBSCRIBERS — form đăng ký nhận bài viết mới
+-- ==========================================================
+-- Chỉ LƯU email đăng ký ở bước này. Việc TỰ ĐỘNG GỬI EMAIL khi có bài viết
+-- mới (báo cho toàn bộ subscriber) sẽ làm ở giai đoạn sau, cần Supabase Edge
+-- Function/dịch vụ gửi mail (Resend, SendGrid...) — ngoài phạm vi bản này.
+--
+-- BẢO MẬT: khách chỉ được INSERT (đăng ký), KHÔNG được SELECT — để không ai
+-- có thể tự gọi API đọc trộm toàn bộ danh sách email người khác đã đăng ký.
+-- Chỉ admin (authenticated) mới xem/xoá được danh sách.
+-- ==========================================================
+create table if not exists public.subscribers (
+    id uuid primary key default gen_random_uuid(),
+    email text not null unique,
+    subscribed_at timestamptz not null default now()
+);
+
+alter table public.subscribers enable row level security;
+
+drop policy if exists "subscribers_insert_anyone" on public.subscribers;
+create policy "subscribers_insert_anyone"
+on public.subscribers for insert to anon, authenticated
+with check (true);
+
+drop policy if exists "subscribers_select_admin_only" on public.subscribers;
+create policy "subscribers_select_admin_only"
+on public.subscribers for select to authenticated
+using (true);
+
+drop policy if exists "subscribers_delete_admin_only" on public.subscribers;
+create policy "subscribers_delete_admin_only"
+on public.subscribers for delete to authenticated
+using (true);

@@ -61,7 +61,7 @@ const BlogListScreen = () => {
     return (
         <div className="min-h-screen bg-[#fff8e1] pb-16 antialiased selection:bg-[#1e40a1] selection:text-white" style={BRAND_FONT}>
             <header className="bg-[#faf8ff] sticky top-0 z-50 border-b-4 border-[#1e40a1] shadow-[4px_4px_0px_0px_rgba(30,64,161,0.9)]">
-                <div className="max-w-6xl mx-auto flex justify-between items-center px-6 py-4">
+                <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
                     <div className="flex items-center gap-4">
                         <h1 className="text-2xl font-extrabold text-[#1e40a1] cursor-pointer" onClick={() => navigate('/')}>
                             IELTS-TV
@@ -87,7 +87,7 @@ const BlogListScreen = () => {
                 </div>
             </div>
 
-            <div className="max-w-6xl mx-auto px-6 -mt-7 relative z-10">
+            <div className="max-w-7xl mx-auto px-6 -mt-7 relative z-10">
                 <div className="bg-white p-4 rounded-[24px] shadow-xl shadow-slate-200/70 border border-slate-200/60 flex flex-col md:flex-row gap-4 mb-10">
                     <div className="flex-1 relative">
                         <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>

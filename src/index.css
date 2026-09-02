@@ -11,6 +11,23 @@
 .reading-content p { margin-bottom: 1rem; line-height: 1.8; font-size: 1.05rem; color: #334155; }
 .reading-content h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: #0f172a; }
 
+/* TÍNH NĂNG MỚI: mở rộng style cho các phần tử nội dung blog (Quill editor
+   xuất ra) — trước đây chỉ có p/h2 nên list, quote, code, link, ảnh không có
+   style gì cả, đặc biệt ẢNH không giới hạn max-width khiến nội dung TRÀN
+   NGANG trên mobile (đây chính là nguyên nhân "không responsive"). */
+.reading-content h3 { font-size: 1.25rem; font-weight: 700; margin: 1.5rem 0 0.75rem; color: #0f172a; }
+.reading-content ul, .reading-content ol { margin: 0 0 1rem 1.5rem; line-height: 1.8; color: #334155; }
+.reading-content ul { list-style: disc; }
+.reading-content ol { list-style: decimal; }
+.reading-content li { margin-bottom: 0.4rem; }
+.reading-content blockquote { border-left: 4px solid #ffca28; padding: 0.5rem 0 0.5rem 1rem; margin: 1.25rem 0; font-style: italic; color: #4a5568; }
+.reading-content pre { background: #1a1b21; color: #f1f5f9; padding: 1rem; border-radius: 12px; overflow-x: auto; margin: 1.25rem 0; font-size: 0.875rem; }
+.reading-content code { background: #eef2fc; color: #1e40a1; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; }
+.reading-content pre code { background: none; color: inherit; padding: 0; }
+.reading-content a { color: #1e40a1; text-decoration: underline; text-underline-offset: 2px; word-break: break-word; }
+.reading-content img { max-width: 100%; height: auto; border-radius: 16px; margin: 1.25rem 0; display: block; }
+.reading-content { word-wrap: break-word; overflow-wrap: break-word; }
+
 /* Ẩn thanh cuộn ngang của thanh điều hướng câu hỏi dính đáy màn hình trên mobile,
    để trông gọn gàng như 1 thanh app-bar thật thay vì có thanh cuộn browser mặc định. */
 .scrollbar-hide {

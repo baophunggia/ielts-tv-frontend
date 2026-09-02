@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import DOMPurify from 'dompurify';
-import { fetchPublishedBlogBySlug } from '../services/blogPublicService.js';
+import { fetchPublishedBlogBySlug, fetchAdjacentPublishedPosts, subscribeToNewsletter } from '../services/blogPublicService.js';
 import { BRAND_FONT } from '../theme/brand.js';
 
 // ==========================================================
@@ -25,13 +25,23 @@ const BlogDetailScreen = () => {
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
 
+    // TÍNH NĂNG MỚI: điều hướng bài trước/sau theo dòng thời gian đăng bài
+    const [adjacentPosts, setAdjacentPosts] = useState({ olderPost: null, newerPost: null });
+
+    // TÍNH NĂNG MỚI: form đăng ký nhận bài viết mới qua email
+    const [subscribeEmail, setSubscribeEmail] = useState('');
+    const [subscribeState, setSubscribeState] = useState({ status: 'idle', msg: '' }); // idle | loading | success | error
+
     useEffect(() => {
         setLoading(true);
         setNotFound(false);
+        setAdjacentPosts({ olderPost: null, newerPost: null });
         fetchPublishedBlogBySlug(slug)
             .then((data) => {
                 if (!data) { setNotFound(true); return; }
                 setPost(data);
+                // Tải bài trước/sau song song, không chặn hiển thị nội dung chính
+                fetchAdjacentPublishedPosts(data).then(setAdjacentPosts).catch((err) => console.error('Lỗi tải bài trước/sau:', err));
             })
             .catch((err) => { console.error('Lỗi tải bài viết:', err); setNotFound(true); })
             .finally(() => setLoading(false));
@@ -83,6 +93,23 @@ const BlogDetailScreen = () => {
         };
     }, [post]);
 
+    const handleSubscribe = async (e) => {
+        e.preventDefault();
+        const email = subscribeEmail.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setSubscribeState({ status: 'error', msg: 'Vui lòng nhập đúng định dạng email.' });
+            return;
+        }
+        setSubscribeState({ status: 'loading', msg: '' });
+        try {
+            await subscribeToNewsletter(email);
+            setSubscribeState({ status: 'success', msg: 'Đăng ký thành công! Bạn sẽ nhận được bài viết mới sớm nhất.' });
+            setSubscribeEmail('');
+        } catch (err) {
+            setSubscribeState({ status: 'error', msg: err.message || 'Có lỗi xảy ra, vui lòng thử lại.' });
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-[#fff8e1] flex items-center justify-center" style={BRAND_FONT}>
@@ -105,67 +132,148 @@ const BlogDetailScreen = () => {
     }
 
     const tags = (post.blog_tags || []).map((bt) => bt.tags).filter(Boolean);
+    const { olderPost, newerPost } = adjacentPosts;
 
     return (
         <div className="min-h-screen bg-[#fff8e1] pb-16 antialiased" style={BRAND_FONT}>
             <header className="bg-[#faf8ff] sticky top-0 z-50 border-b-4 border-[#1e40a1] shadow-[4px_4px_0px_0px_rgba(30,64,161,0.9)]">
-                <div className="max-w-6xl mx-auto flex justify-between items-center px-6 py-4">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-2xl font-extrabold text-[#1e40a1] cursor-pointer" onClick={() => navigate('/')}>
+                {/* ĐỒNG BỘ ĐỘ RỘNG: max-w-7xl khớp với LandingScreen.jsx (trước đây dùng
+                    max-w-6xl, lệch với các section trên trang chủ). */}
+                <div className="max-w-7xl mx-auto flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4">
+                    <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+                        <h1 className="text-xl sm:text-2xl font-extrabold text-[#1e40a1] cursor-pointer shrink-0" onClick={() => navigate('/')}>
                             IELTS-TV
                         </h1>
-                        <Link to="/blogs" className="hidden sm:flex items-center gap-1.5 text-[#444652] hover:text-[#1e40a1] text-xs font-bold transition-colors border-l border-slate-300 pl-4">
+                        <Link to="/blogs" className="hidden sm:flex items-center gap-1.5 text-[#444652] hover:text-[#1e40a1] text-xs font-bold transition-colors border-l border-slate-300 pl-4 shrink-0">
                             <i className="fa-solid fa-arrow-left"></i> Tất cả bài viết
                         </Link>
                     </div>
-                    <Link to="/tests" className="bg-[#1e40a1] text-white px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 shadow-[3px_3px_0px_0px_#1a1b21] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all">
-                        <i className="fa-solid fa-file-lines"></i> Đề thi luyện tập
+                    <Link to="/tests" className="bg-[#1e40a1] text-white px-3 sm:px-4 py-2 rounded-full font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 shadow-[3px_3px_0px_0px_#1a1b21] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all shrink-0">
+                        <i className="fa-solid fa-file-lines"></i> <span className="hidden xs:inline">Đề thi luyện tập</span>
                     </Link>
                 </div>
             </header>
 
-            <article className="max-w-3xl mx-auto px-6 pt-10">
-                {post.categories?.name && (
-                    <Link to="/blogs" className="inline-block text-[11px] font-bold uppercase tracking-wide bg-[#eef2fc] text-[#1e40a1] px-3 py-1.5 rounded-md mb-4">
-                        {post.categories.name}
-                    </Link>
-                )}
-                <h1 className="text-3xl md:text-4xl font-extrabold text-[#2d3748] leading-tight mb-3">{post.title}</h1>
-                <div className="flex items-center gap-3 text-sm text-slate-400 mb-6">
-                    <i className="fa-regular fa-calendar"></i>
-                    <span>{new Date(post.published_at).toLocaleDateString('vi-VN', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
-                </div>
+            {/* ĐỒNG BỘ ĐỘ RỘNG: bọc ngoài max-w-7xl (khớp Landing), nội dung bài viết
+                (article) giữ max-w-3xl riêng để dễ đọc — giống cách các trang blog lớn
+                (Medium, Substack...) vẫn căn giữa cột chữ hẹp trong khung trang rộng hơn,
+                không phải "không đồng bộ" mà là chủ đích cho dễ đọc văn bản dài. */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                <article className="max-w-3xl mx-auto pt-8 sm:pt-10">
+                    {post.categories?.name && (
+                        <Link to="/blogs" className="inline-block text-[11px] font-bold uppercase tracking-wide bg-[#eef2fc] text-[#1e40a1] px-3 py-1.5 rounded-md mb-4">
+                            {post.categories.name}
+                        </Link>
+                    )}
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#2d3748] leading-tight mb-3 break-words">{post.title}</h1>
+                    <div className="flex items-center gap-3 text-sm text-slate-400 mb-6">
+                        <i className="fa-regular fa-calendar"></i>
+                        <span>{new Date(post.published_at).toLocaleDateString('vi-VN', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                    </div>
 
-                {post.featured_image_url && (
-                    <img src={post.featured_image_url} alt={post.title} className="w-full h-72 md:h-96 object-cover rounded-[24px] mb-8 shadow-md" />
-                )}
+                    {post.featured_image_url && (
+                        <img src={post.featured_image_url} alt={post.title} className="w-full h-52 sm:h-72 md:h-96 object-cover rounded-[16px] sm:rounded-[24px] mb-6 sm:mb-8 shadow-md" />
+                    )}
 
-                {post.excerpt && (
-                    <p className="text-lg text-slate-600 italic border-l-4 border-[#ffca28] pl-4 mb-8">{post.excerpt}</p>
-                )}
+                    {post.excerpt && (
+                        <p className="text-base sm:text-lg text-slate-600 italic border-l-4 border-[#ffca28] pl-4 mb-6 sm:mb-8">{post.excerpt}</p>
+                    )}
 
-                {/* Nội dung đã sanitize bằng DOMPurify trước khi render — chống XSS */}
-                <div
-                    className="reading-content prose max-w-none"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content || '') }}
-                />
+                    {/* Nội dung đã sanitize bằng DOMPurify trước khi render — chống XSS.
+                        FIX RESPONSIVE: bỏ class "prose" (không có tác dụng gì vì project
+                        không cài @tailwindcss/typography) — style thật nằm ở .reading-content
+                        trong index.css, đã bổ sung đầy đủ h3/list/quote/code/link/ẢNH RESPONSIVE
+                        (trước đây ảnh chèn trong bài không giới hạn max-width, gây tràn ngang
+                        trên mobile — đây là nguyên nhân chính của lỗi "không responsive"). */}
+                    <div
+                        className="reading-content"
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content || '') }}
+                    />
 
-                {tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-10 pt-6 border-t border-slate-200">
-                        {tags.map((tag) => (
-                            <span key={tag.id} className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-full">
-                                #{tag.name}
-                            </span>
-                        ))}
+                    {tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-10 pt-6 border-t border-slate-200">
+                            {tags.map((tag) => (
+                                <span key={tag.id} className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-full">
+                                    #{tag.name}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </article>
+
+                {/* ============ TÍNH NĂNG MỚI: ĐIỀU HƯỚNG BÀI TRƯỚC / BÀI SAU ============ */}
+                {/* Chuẩn logic điều hướng blog: "Bài trước" = đăng sớm hơn, "Bài sau" =
+                    đăng muộn hơn bài đang xem (theo published_at) — không phải theo id. */}
+                {(olderPost || newerPost) && (
+                    <div className="max-w-3xl mx-auto mt-10 pt-8 border-t-2 border-[#1a1b21]/10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {olderPost ? (
+                            <Link
+                                to={`/blogs/${olderPost.slug}`}
+                                className="group bg-white border-2 border-[#1a1b21]/10 hover:border-[#1e40a1]/40 rounded-2xl p-5 flex flex-col gap-1.5 transition-all hover:-translate-y-0.5"
+                            >
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
+                                    <i className="fa-solid fa-arrow-left"></i> Bài trước
+                                </span>
+                                <span className="font-bold text-[#2d3748] group-hover:text-[#1e40a1] line-clamp-2 transition-colors">{olderPost.title}</span>
+                            </Link>
+                        ) : <div className="hidden sm:block" />}
+
+                        {newerPost && (
+                            <Link
+                                to={`/blogs/${newerPost.slug}`}
+                                className="group bg-white border-2 border-[#1a1b21]/10 hover:border-[#1e40a1]/40 rounded-2xl p-5 flex flex-col gap-1.5 text-left sm:text-right transition-all hover:-translate-y-0.5"
+                            >
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5 sm:justify-end">
+                                    Bài sau <i className="fa-solid fa-arrow-right"></i>
+                                </span>
+                                <span className="font-bold text-[#2d3748] group-hover:text-[#1e40a1] line-clamp-2 transition-colors">{newerPost.title}</span>
+                            </Link>
+                        )}
                     </div>
                 )}
+
+                {/* ============ TÍNH NĂNG MỚI: FORM ĐĂNG KÝ NHẬN BÀI VIẾT MỚI ============ */}
+                {/* Hiện tại chỉ LƯU email vào bảng "subscribers". Việc tự động gửi email
+                    khi có bài mới sẽ triển khai sau (cần Edge Function + dịch vụ gửi mail). */}
+                <div className="max-w-3xl mx-auto mt-8">
+                    <div className="bg-[#2a4365] rounded-[24px] p-6 sm:p-10 text-center">
+                        <i className="fa-solid fa-envelope-open-text text-3xl text-[#ffca28] mb-3"></i>
+                        <h3 className="text-xl sm:text-2xl font-extrabold text-white mb-2">Nhận bài viết mới qua email</h3>
+                        <p className="text-slate-300 text-sm mb-5 max-w-md mx-auto">Đăng ký để nhận thông báo mỗi khi IELTS-TV đăng bài viết mới, không spam.</p>
+
+                        <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2.5 max-w-md mx-auto">
+                            <input
+                                type="email"
+                                required
+                                value={subscribeEmail}
+                                onChange={(e) => setSubscribeEmail(e.target.value)}
+                                placeholder="Nhập email của bạn..."
+                                disabled={subscribeState.status === 'loading'}
+                                className="flex-1 rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#ffca28] disabled:opacity-60"
+                            />
+                            <button
+                                type="submit"
+                                disabled={subscribeState.status === 'loading'}
+                                className="bg-[#ffca28] text-[#2d3748] font-bold px-6 py-3 rounded-full shadow-[3px_3px_0px_0px_#1a1b21] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-60 shrink-0"
+                            >
+                                {subscribeState.status === 'loading' ? 'Đang gửi...' : 'Đăng ký'}
+                            </button>
+                        </form>
+
+                        {subscribeState.msg && (
+                            <p className={`text-sm font-semibold mt-3 ${subscribeState.status === 'success' ? 'text-emerald-300' : 'text-rose-300'}`}>
+                                {subscribeState.msg}
+                            </p>
+                        )}
+                    </div>
+                </div>
 
                 <div className="mt-10 flex justify-center">
                     <Link to="/blogs" className="bg-white border-2 border-[#1a1b21]/10 hover:border-[#1e40a1]/40 text-[#2d3748] font-bold px-6 py-3 rounded-full transition-all flex items-center gap-2">
                         <i className="fa-solid fa-arrow-left"></i> Xem thêm bài viết khác
                     </Link>
                 </div>
-            </article>
+            </div>
         </div>
     );
 };

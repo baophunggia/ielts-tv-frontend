@@ -65,3 +65,34 @@ export const fetchPublishedBlogBySlug = async (slug) => {
     if (!data || !isCurrentlyPublished(data)) return null; // chưa publish/chưa tới giờ -> coi như không tồn tại với khách
     return data;
 };
+
+// TÍNH NĂNG MỚI: tìm bài "trước" (cũ hơn, publish sớm hơn) và bài "sau" (mới
+// hơn, publish trễ hơn) so với bài đang xem — đúng logic điều hướng blog
+// chuẩn (theo dòng thời gian đăng bài, không phải theo id/thứ tự ngẫu nhiên).
+export const fetchAdjacentPublishedPosts = async (currentPost) => {
+    const baseQuery = () => supabase
+        .from('blogs')
+        .select('title, slug')
+        .eq('status', 'published')
+        .lte('published_at', new Date().toISOString());
+
+    const [olderRes, newerRes] = await Promise.all([
+        baseQuery().lt('published_at', currentPost.published_at).order('published_at', { ascending: false }).limit(1).maybeSingle(),
+        baseQuery().gt('published_at', currentPost.published_at).order('published_at', { ascending: true }).limit(1).maybeSingle(),
+    ]);
+    if (olderRes.error) throw olderRes.error;
+    if (newerRes.error) throw newerRes.error;
+    return { olderPost: olderRes.data || null, newerPost: newerRes.data || null };
+};
+
+// TÍNH NĂNG MỚI: đăng ký nhận bài viết mới qua email. Hiện tại CHỈ lưu email
+// vào bảng "subscribers" — việc tự động gửi email khi có bài mới sẽ triển
+// khai sau (cần Edge Function + dịch vụ gửi mail ngoài).
+export const subscribeToNewsletter = async (email) => {
+    const { error } = await supabase.from('subscribers').insert([{ email: email.trim().toLowerCase() }]);
+    if (error) {
+        // Mã lỗi 23505 = vi phạm ràng buộc unique (Postgres) -> email đã đăng ký từ trước
+        if (error.code === '23505') throw new Error('Email này đã đăng ký nhận bài viết rồi!');
+        throw error;
+    }
+};
