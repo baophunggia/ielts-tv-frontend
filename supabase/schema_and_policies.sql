@@ -342,3 +342,15 @@ drop policy if exists "subscribers_delete_admin_only" on public.subscribers;
 create policy "subscribers_delete_admin_only"
 on public.subscribers for delete to authenticated
 using (true);
+
+
+-- ==========================================================
+-- 10. TỰ ĐỘNG GỬI EMAIL KHI CÓ BÀI VIẾT MỚI (dùng cho Edge Function
+--     supabase/functions/notify-new-posts) — xem hướng dẫn triển khai đầy
+--     đủ tại supabase/functions/README.md
+-- ==========================================================
+-- Đánh dấu bài đã từng gửi thông báo hay chưa, để cron không gửi lặp lại
+-- email cho cùng 1 bài viết ở những lần chạy sau.
+alter table public.blogs add column if not exists notified_at timestamptz;
+
+create index if not exists idx_blogs_notified_at on public.blogs(notified_at) where notified_at is null;

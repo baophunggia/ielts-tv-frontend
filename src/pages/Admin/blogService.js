@@ -53,7 +53,7 @@ export const deleteTag = async (id) => {
 export const fetchAdminBlogList = async () => {
     const { data, error } = await supabase
         .from('blogs')
-        .select('id, title, slug, status, category_id, featured_image_url, published_at, scheduled_at, created_at, updated_at, categories(name)')
+        .select('id, title, slug, status, category_id, featured_image_url, published_at, scheduled_at, notified_at, created_at, updated_at, categories(name)')
         .order('updated_at', { ascending: false });
     if (error) throw error;
     return data || [];

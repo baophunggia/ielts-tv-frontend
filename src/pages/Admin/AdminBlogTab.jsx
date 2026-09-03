@@ -171,6 +171,14 @@ const AdminBlogTab = () => {
                                                         {new Date(post.scheduled_at).toLocaleString('vi-VN')}
                                                     </div>
                                                 )}
+                                                {/* TÍNH NĂNG MỚI: chỉ báo đã gửi email thông báo hay chưa (Edge Function
+                                                    notify-new-posts tự động đánh dấu notified_at sau khi gửi xong) */}
+                                                {post.status === 'published' && (
+                                                    <div className={`text-[11px] font-normal mt-0.5 flex items-center gap-1 ${post.notified_at ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                                        <i className={`fa-solid ${post.notified_at ? 'fa-envelope-circle-check' : 'fa-clock'}`}></i>
+                                                        {post.notified_at ? 'Đã gửi email thông báo' : 'Chờ gửi email thông báo'}
+                                                    </div>
+                                                )}
                                             </td>
                                             <td className="px-5 py-3.5 text-slate-500">{post.categories?.name || '—'}</td>
                                             <td className="px-5 py-3.5">
